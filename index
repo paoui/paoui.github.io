@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>try{var t=localStorage.getItem('seed-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed Scanner</title>
+<style>
+  * { box-sizing: border-box; border-radius: 0; }
+  [hidden] { display: none !important; }
+  ::selection { background: var(--ink); color: var(--paper); }
+
+  /* Registering the colors lets the variables themselves animate,
+     so every border, fill and text color fades together in one smooth pass. */
+  @property --ink   { syntax: '<color>'; inherits: true; initial-value: #fff; }
+  @property --paper { syntax: '<color>'; inherits: true; initial-value: #000; }
+  @property --gray  { syntax: '<color>'; inherits: true; initial-value: #9a9a9a; }
+
+  :root {
+    /* night (default) */
+    --ink: #fff;
+    --paper: #000;
+    --gray: #9a9a9a;
+    color-scheme: dark;
+    --theme-ease: cubic-bezier(.65, 0, .35, 1);
+    transition: --ink .6s var(--theme-ease), --paper .6s var(--theme-ease), --gray .6s var(--theme-ease);
+    --b: 3px;
+    --sans: "Helvetica Neue", Helvetica, Arial, "Inter", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  }
+
+  /* day */
+  :root[data-theme="light"] {
+    --ink: #000;
+    --paper: #fff;
+    --gray: #666;
+    color-scheme: light;
+  }
+
+  /* While switching, only the root variables animate (avoids double-easing on buttons etc.) */
+  .theme-switching *:not(.theme-toggle):not(.theme-toggle *) { transition: none !important; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    padding: 0; border: 0; background: transparent; box-shadow: none; gap: 10px;
+    font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  }
+  .theme-toggle:hover, .theme-toggle:active { transform: none; box-shadow: none; }
+  .theme-toggle:focus-visible { outline-offset: 4px; }
+  .tt-track { position: relative; display: block; width: 46px; height: 22px; border: 2px solid var(--ink); }
+  .tt-thumb {
+    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--ink);
+    transition: transform .55s var(--theme-ease);
+  }
+  .theme-toggle:hover .tt-thumb { transform: scale(.8); }
+  :root[data-theme="light"] .tt-thumb { transform: translateX(24px); }
+  :root[data-theme="light"] .theme-toggle:hover .tt-thumb { transform: translateX(24px) scale(.8); }
+  .tt-label { display: inline-grid; min-width: 38px; text-align: left; }
+  .tt-label > span { grid-area: 1 / 1; transition: opacity .35s ease, transform .55s var(--theme-ease); }
+  .tt-label .d { opacity: 0; transform: translateY(8px); }
+  :root[data-theme="light"] .tt-label .n { opacity: 0; transform: translateY(-8px); }
+  :root[data-theme="light"] .tt-label .d { opacity: 1; transform: none; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, textarea, input, select { font: inherit; color: inherit; }
+  code { font-family: var(--mono); font-size: .88em; border: 2px solid var(--ink); padding: 1px 5px; }
+
+  /* Sheet frame */
+  .sheet { width: min(1240px, calc(100% - 32px)); margin: 24px auto; border: var(--b) solid var(--ink); }
+
+  /* Meta bar */
+  .meta { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--b) solid var(--ink); font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .meta-end { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 12px 20px; }
+
+  /* Tabs: the ink fill wipes in from the left on the active tab and out to the right on the old one */
+  .tab {
+    position: relative; isolation: isolate; width: 100%; justify-content: flex-start; gap: 0;
+    padding: 12px 20px; border: 0; border-right: var(--b) solid var(--ink);
+    background: transparent; color: var(--ink); box-shadow: none; text-align: left;
+    font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+    transition: color .35s var(--theme-ease) .05s, box-shadow .25s cubic-bezier(.22,.8,.24,1);
+  }
+  .tab::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; background: var(--ink);
+    transform: scaleX(0); transform-origin: right; transition: transform .5s var(--theme-ease);
+  }
+  .tab[aria-current="page"] { color: var(--paper); }
+  .tab[aria-current="page"]::before { transform: scaleX(1); transform-origin: left; }
+  .tab:hover, .tab:active { transform: none; box-shadow: none; }
+  .tab:not([aria-current]):hover { box-shadow: inset 10px 0 0 var(--ink); }
+  .tab:focus-visible { outline: 2px solid currentColor; outline-offset: -7px; }
+  .tab .n { font-weight: 400; opacity: .6; margin-right: 12px; letter-spacing: 0; }
+
+  .panel-status { font: 700 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1fr minmax(260px, 360px); gap: 32px; align-items: end; padding: 28px 24px 26px; border-bottom: var(--b) solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(54px, 11vw, 150px); line-height: .84; letter-spacing: -.055em; font-weight: 800; text-transform: uppercase; }
+  .hero-note .label { font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; display: block; }
+  .subtitle { margin: 0; font-size: 14px; line-height: 1.6; font-weight: 500; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: 1.05fr .95fr; }
+  .panel { min-width: 0; }
+  .panel + .panel { border-left: var(--b) solid var(--ink); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--ink); color: var(--paper); padding: 10px 20px; min-height: 52px; }
+  .panel-title { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; display: flex; gap: 12px; align-items: baseline; }
+  .panel-title .idx { font-family: var(--mono); font-weight: 400; opacity: .6; }
+  .panel-body { padding: 20px; }
+
+  /* Buttons */
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: var(--b) solid var(--ink); background: var(--paper); color: var(--ink);
+    padding: 12px 18px; cursor: pointer; font-weight: 800; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: transform .18s cubic-bezier(.22,.8,.24,1), box-shadow .18s cubic-bezier(.22,.8,.24,1), background .18s ease, color .18s ease;
+  }
+  button:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+  button:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  button.primary { background: var(--ink); color: var(--paper); box-shadow: none; }
+  button.primary:hover { background: var(--paper); color: var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+  button.done { background: var(--ink) !important; color: var(--paper) !important; }
+  button:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .head-btn { border: 2px solid var(--paper); background: transparent; color: var(--paper); box-shadow: none; padding: 8px 12px; font-size: 11px; }
+  .head-btn:hover { background: var(--paper); color: var(--ink); transform: none; box-shadow: none; }
+  .head-btn:active { transform: none; }
+  .head-btn.done { background: var(--paper) !important; color: var(--ink) !important; }
+
+  /* Drop + textarea */
+  .drop {
+    border: 2px dashed var(--ink); padding: 16px; margin-bottom: 16px; text-align: left;
+    font: 700 11px/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; transition: background .2s ease, color .2s ease;
+  }
+  .drop label { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .drop.drag { background: var(--ink); color: var(--paper); }
+  input[type=file] { display: none; }
+
+  textarea {
+    width: 100%; min-height: 400px; resize: vertical; border: var(--b) solid var(--ink); background: var(--paper);
+    padding: 16px; outline: none; font: 13px/1.6 var(--mono); transition: box-shadow .2s cubic-bezier(.22,.8,.24,1), transform .2s cubic-bezier(.22,.8,.24,1);
+  }
+  textarea::placeholder { color: var(--gray); opacity: .8; }
+  textarea:focus { box-shadow: 6px 6px 0 var(--ink); transform: translate(-3px, -3px); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px; }
+
+  /* Notice */
+  .notice { display: none; margin-top: 20px; border: var(--b) solid var(--ink); padding: 12px 14px; font: 500 12px/1.5 var(--mono); align-items: flex-start; gap: 12px; }
+  .notice .tag { font-weight: 700; padding: 2px 7px; letter-spacing: .1em; flex-shrink: 0; }
+  .notice.success { display: flex; background: var(--paper); }
+  .notice.success .tag { background: var(--ink); color: var(--paper); }
+  .notice.error { display: flex; background: var(--ink); color: var(--paper); }
+  .notice.error .tag { background: var(--paper); color: var(--ink); }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--b) solid var(--ink); }
+  .stat { padding: 16px 20px 20px; border-right: var(--b) solid var(--ink); min-width: 0; }
+  .stat:last-child { border-right: 0; }
+  .stat-label { font: 700 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; display: flex; justify-content: space-between; margin-bottom: 18px; }
+  .stat-label span:last-child { color: var(--gray); }
+  .stat-value { font-size: clamp(34px, 5vw, 58px); font-weight: 800; letter-spacing: -.05em; line-height: .9; }
+  .bar { height: 12px; border: 2px solid var(--ink); margin-top: 14px; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--ink); transition: width .9s cubic-bezier(.22,.8,.24,1); }
+
+  /* Empty */
+  .empty { min-height: 380px; padding: 32px 24px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .empty-big { font-size: clamp(90px, 14vw, 170px); font-weight: 800; line-height: .8; letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 3px var(--ink); margin-bottom: 20px; }
+  .empty strong { font-size: 20px; text-transform: uppercase; letter-spacing: .02em; font-weight: 800; }
+  .empty-sub { margin-top: 8px; font: 500 12px/1.6 var(--mono); color: var(--gray); }
+
+  /* Seed list */
+  .seed-list { max-height: 640px; overflow-y: auto; }
+  .seed-list::-webkit-scrollbar { width: 12px; }
+  .seed-list::-webkit-scrollbar-track { background: var(--paper); border-left: 2px solid var(--ink); }
+  .seed-list::-webkit-scrollbar-thumb { background: var(--ink); }
+  .seed { display: grid; grid-template-columns: 76px 1fr; border-bottom: var(--b) solid var(--ink); animation: slide .5s cubic-bezier(.22,.8,.24,1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+  .seed:last-child { border-bottom: 0; }
+  .seed-num { border-right: var(--b) solid var(--ink); padding: 16px 0; text-align: center; font: 800 28px/1 var(--mono); letter-spacing: -.04em; transition: background .2s ease, color .2s ease; }
+  .seed:hover .seed-num { background: var(--ink); color: var(--paper); }
+  .seed-body { padding: 16px 20px 18px; min-width: 0; }
+  .seed-tag { font: 700 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gray); }
+  .title { font-weight: 800; font-size: 17px; line-height: 1.3; margin: 8px 0 14px; overflow-wrap: anywhere; letter-spacing: -.01em; }
+  .id { display: inline-flex; align-items: stretch; border: 2px solid var(--ink); font: 600 12px/1 var(--mono); }
+  .id b { background: var(--ink); color: var(--paper); padding: 6px 8px; letter-spacing: .1em; }
+  .id span { padding: 6px 10px; }
+  .seed-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .seed-actions button { padding: 7px 10px; font-size: 10px; border-width: 2px; box-shadow: 3px 3px 0 var(--ink); }
+  .seed-actions button:hover { box-shadow: 5px 5px 0 var(--ink); }
+  .seed-actions button:active { box-shadow: 0 0 0 var(--ink); }
+
+  /* Footer */
+  .footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: var(--b) solid var(--ink); padding: 14px 20px; font: 700 10px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+
+  /* ---------- Size calculator ---------- */
+  /* Category list */
+  .category-btn {
+    width: 100%; justify-content: space-between; text-align: left; border: 0; border-bottom: var(--b) solid var(--ink);
+    box-shadow: none; padding: 16px 20px; font-size: 13px; transform: none;
+  }
+  .category-btn:last-child { border-bottom: 0; }
+  .category-btn .n { font: 400 11px var(--mono); opacity: .6; margin-right: 14px; letter-spacing: 0; }
+  .category-btn .arrow { opacity: 0; }
+  .category-btn:hover, .category-btn:active { transform: none; box-shadow: inset 10px 0 0 var(--ink); }
+  .category-btn.active { background: var(--ink); color: var(--paper); }
+  .category-btn.active .arrow { opacity: 1; }
+  .category-btn.active:hover { box-shadow: none; }
+
+  /* Rules */
+  .rule { padding: 16px 20px 18px; border-bottom: var(--b) solid var(--ink); }
+  .rule:last-child { border-bottom: 0; }
+  .rule-title { display: flex; gap: 10px; align-items: baseline; font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
+  .rule-title .n { font: 400 11px var(--mono); opacity: .6; letter-spacing: 0; }
+  .rule-formula { font: 600 12px/1.5 var(--mono); border: 2px solid var(--ink); padding: 10px 12px; margin: 0; }
+  .rule-condition { font: 500 12px/1.7 var(--mono); }
+  .rule-condition::before { content: "\2014\00a0"; }
+  .conversion-note { font: 500 11px/1.5 var(--mono); color: var(--gray); margin: 10px 0 0; }
+
+  /* Calculator inputs */
+  .input-group { display: none; }
+  .input-group.active { display: block; animation: group .45s cubic-bezier(.22,.8,.24,1) both; }
+  .sides { display: grid; grid-template-columns: 1fr 1fr; border: var(--b) solid var(--ink); margin-bottom: 20px; }
+  .side { padding: 16px; min-width: 0; }
+  .side + .side { border-left: var(--b) solid var(--ink); }
+  .side-title { display: inline-block; background: var(--ink); color: var(--paper); font: 700 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; padding: 6px 8px; margin-bottom: 16px; }
+  .input-item { margin-bottom: 14px; }
+  .input-item:last-child { margin-bottom: 0; }
+  .view-calc label { display: block; font: 700 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+
+  .field { display: flex; border: var(--b) solid var(--ink); background: var(--paper); transition: transform .2s cubic-bezier(.22,.8,.24,1), box-shadow .2s cubic-bezier(.22,.8,.24,1); }
+  .field:focus-within { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+  .field input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; padding: 12px 14px; font: 500 16px var(--mono); }
+  .field input::placeholder { color: var(--gray); opacity: .7; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .unit-selector, .unit-static {
+    display: flex; align-items: center; justify-content: center; min-width: 64px; padding: 0 12px;
+    background: var(--ink); color: var(--paper); border: 0; font: 700 11px var(--mono); letter-spacing: .1em; text-transform: uppercase;
+  }
+  .unit-selector { -webkit-appearance: none; appearance: none; cursor: pointer; text-align: center; text-align-last: center; border-radius: 0; }
+  .unit-selector option { background: var(--paper); color: var(--ink); }
+  .unit-selector:focus-visible { outline: 2px solid var(--paper); outline-offset: -5px; }
+
+  .button-group { display: flex; gap: 14px; margin-top: 4px; }
+  .button-group button { flex: 1; padding: 14px; }
+
+  /* Results */
+  .calc-results { display: grid; gap: 16px; margin-top: 24px; }
+  .result-item { border: var(--b) solid var(--ink); padding: 14px 16px 16px; }
+  .result-title { display: flex; justify-content: space-between; font: 700 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; }
+  .result-title span:last-child { color: var(--gray); }
+  .result-big { position: relative; padding: 12px 14px; font-size: clamp(34px, 5vw, 56px); font-weight: 800; letter-spacing: -.05em; line-height: .95; text-transform: uppercase; }
+  .result-big.same { background: var(--ink); color: var(--paper); }
+  .result-big.different { border: var(--b) solid var(--ink); padding-right: 92px; }
+  .result-big.different::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 64px; border-left: var(--b) solid var(--ink); background: repeating-linear-gradient(45deg, var(--ink) 0 3px, var(--paper) 3px 9px); }
+  .explanation { font: 500 12px/1.6 var(--mono); color: var(--gray); margin: 10px 0 0; }
+  #calculation-details { font: 500 13px/1.7 var(--mono); overflow-wrap: anywhere; }
+
+
+  .view-calc h1 { font-size: clamp(40px, 7.5vw, 112px); line-height: .86; }
+  .view-calc .grid { grid-template-columns: .9fr 1.1fr; }
+  @keyframes group { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .result-big.reveal { animation: wipe .6s cubic-bezier(.22,.8,.24,1) both; }
+  .explanation.reveal, #calculation-details.reveal { animation: appear .5s ease-out .2s both; }
+
+  /* ---------- motion: smooth easing ---------- */
+  @keyframes open  { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes flick { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  @keyframes lineUp { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  @keyframes wipe  { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes caret { 0%,100% { opacity: 1; } 50% { opacity: .1; } }
+  @keyframes scan  { from { transform: translateX(-100%); } to { transform: translateX(560%); } }
+
+  /* one orchestrated load: frame draws down, then headline, then panels */
+  .sheet { animation: open .9s cubic-bezier(.22,.8,.24,1) backwards; }
+  .meta > * { animation: flick .6s cubic-bezier(.22,.8,.24,1) .55s backwards; }
+  .meta > :nth-child(2) { animation-delay: .6s; }
+  .meta > :last-child { animation-delay: .7s; }
+  .ln { display: block; overflow: hidden; padding-bottom: .06em; margin-bottom: -.06em; }
+  :root { --off: 0s; }              /* full page-load timing */
+  :root.replay { --off: -.55s; }    /* shorter timing when a tab is (re)opened */
+  .ln > span { display: block; animation: lineUp .8s cubic-bezier(.22,.8,.24,1) calc(.6s + var(--off)) backwards; }
+  .ln:nth-child(2) > span { animation-delay: calc(.75s + var(--off)); }
+  .hero-note { animation: appear .7s ease-out calc(.95s + var(--off)) backwards; }
+  .panel-head { animation: wipe .7s cubic-bezier(.22,.8,.24,1) calc(1.05s + var(--off)) backwards; }
+  .panel-head.late { animation-delay: calc(1.25s + var(--off)); }
+  .panel-body, .stats, .empty { animation: appear .6s ease-out calc(1.25s + var(--off)) backwards; }
+  .category-btn { animation: slide .5s cubic-bezier(.22,.8,.24,1) calc(1.3s + var(--off) + var(--i, 0) * 60ms) backwards; }
+  .instructions .rule { animation: slide .5s cubic-bezier(.22,.8,.24,1) calc(1.55s + var(--off) + var(--i, 0) * 60ms) backwards; }
+  .caret { animation: caret 1.2s ease-in-out infinite; }
+
+  /* responses to what you do */
+  .results, .calc-results { position: relative; overflow: hidden; }
+  .results.scanning::after, .calc-results.scanning::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 18%;
+    background: #fff; mix-blend-mode: difference; pointer-events: none;
+    animation: scan .8s cubic-bezier(.45,0,.2,1) forwards;
+  }
+  .stat-value { font-variant-numeric: tabular-nums; }
+  .notice.success, .notice.error { animation: appear .3s ease-out backwards; }
+
+  @keyframes slide { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 850px) {
+    .grid, .view-calc .grid { grid-template-columns: 1fr; }
+    .panel + .panel { border-left: 0; border-top: var(--b) solid var(--ink); }
+    .hero { grid-template-columns: 1fr; gap: 20px; }
+    textarea { min-height: 300px; }
+    .empty { min-height: 280px; }
+  }
+  @media (max-width: 700px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .tab:nth-child(2) { border-right: 0; }
+    .meta-end { grid-column: 1 / -1; border-top: var(--b) solid var(--ink); justify-content: space-between; }
+  }
+  @media (max-width: 520px) {
+    .sheet { width: calc(100% - 20px); margin: 10px auto; }
+    .meta { grid-template-columns: 1fr; }
+    .meta > * { border-right: 0; border-bottom: var(--b) solid var(--ink); }
+    .meta-end { border-bottom: 0; border-top: 0; flex-direction: row-reverse; }
+    .stat { padding: 14px 12px; }
+    .seed { grid-template-columns: 56px 1fr; }
+    .seed-num { font-size: 22px; }
+    .sides { grid-template-columns: 1fr; }
+    .side + .side { border-left: 0; border-top: var(--b) solid var(--ink); }
+    .button-group { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <nav class="meta" aria-label="Tools">
+    <button type="button" class="tab" data-view="scanner" aria-current="page"><span class="n">01</span>Seed Scanner</button>
+    <button type="button" class="tab" data-view="calc"><span class="n">02</span>Size Calculator</button>
+    <div class="meta-end">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle day and night mode" aria-pressed="false">
+        <span class="tt-label"><span class="n">Night</span><span class="d">Day</span></span>
+        <span class="tt-track"><span class="tt-thumb"></span></span>
+      </button>
+      <span>V01 &middot; By Paoui</span>
+    </div>
+  </nav>
+
+  <div class="view" id="view-scanner">
+  <header class="hero">
+    <h1><span class="ln"><span>Seed</span></span><span class="ln"><span>Scanner</span></span></h1>
+    <div class="hero-note">
+      <span class="label">(00) Purpose</span>
+      <p class="subtitle">Paste the <code>outer-list</code> response, scan it for seed items, and get the Product Titles and Data IDs you need without digging through the raw JSON.</p>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="idx">01</span>Raw JSON</div>
+        <button class="head-btn" id="exampleBtn"><span class="label">Load example</span></button>
+      </div>
+      <div class="panel-body">
+        <div class="drop" id="dropZone">Drop a .json or .txt file here, or <label for="fileInput">browse</label><input id="fileInput" type="file" accept=".json,.txt,application/json,text/plain"></div>
+        <textarea id="jsonInput" spellcheck="false" placeholder="Paste the complete outer-list JSON here..."></textarea>
+        <div class="actions">
+          <button class="primary" id="scanBtn"><span class="label">Scan Seeds</span><span aria-hidden="true">&rarr;</span></button>
+          <button id="clearBtn"><span class="label">Clear</span></button>
+        </div>
+        <div class="notice" id="notice"></div>
+      </div>
+    </section>
+
+    <section class="panel results">
+      <div class="panel-head">
+        <div class="panel-title"><span class="idx">02</span>Seed Results</div>
+        <div class="panel-status"><span id="status">Idle</span> <span class="caret">&#9612;</span></div>
+        <button class="head-btn" id="copyAllBtn" disabled><span class="label">Copy All</span></button>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label"><span>Products</span><span>A</span></div>
+          <div class="stat-value" id="productCount">&mdash;</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span>Seeds</span><span>B</span></div>
+          <div class="stat-value" id="seedCount">&mdash;</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span>Rate</span><span>C</span></div>
+          <div class="stat-value" id="seedRate">&mdash;</div>
+          <div class="bar"><span id="rateBar"></span></div>
+        </div>
+      </div>
+      <div id="emptyState" class="empty"></div>
+      <div id="seedList" class="seed-list" hidden></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Everything is processed locally in this browser.</span>
+    <span>Nothing is uploaded by this page.</span>
+  </footer>
+  </div><!-- /view-scanner -->
+
+  <div class="view view-calc" id="view-calc" hidden>
+  <header class="hero">
+    <h1><span class="ln"><span>Size</span></span><span class="ln"><span>Difference</span></span></h1>
+    <div class="hero-note">
+      <span class="label">(00) Purpose</span>
+      <p class="subtitle">Calculate right item / left item data differences based on product type to determine if they are the same.</p>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- Left: categories + rules -->
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">01</span>Product Categories</div></div>
+      <div class="category-buttons">
+        <button class="category-btn active" data-category="bag" style="--i:0"><span><span class="n">01</span>Bags</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="clothing" style="--i:1"><span><span class="n">02</span>Clothing Fabric Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="metal" style="--i:2"><span><span class="n">03</span>Precious Metal Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="accessory" style="--i:3"><span><span class="n">04</span>Accessory Size</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="belt" style="--i:4"><span><span class="n">05</span>Belts &amp; Ropes</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+      </div>
+
+      <div class="panel-head late"><div class="panel-title"><span class="idx">02</span>Calculation Rules</div></div>
+      <div class="instructions">
+        <div class="rule" style="--i:0">
+          <div class="rule-title"><span class="n">01</span>Bags</div>
+          <p class="rule-formula">0.8 &lt; Right Volume / Left Volume &lt; 1.2 &rarr; Same</p>
+          <p class="conversion-note">Supports automatic inch conversion (1 inch = 2.54 cm)</p>
+        </div>
+        <div class="rule" style="--i:1">
+          <div class="rule-title"><span class="n">02</span>Clothing Fabric Weight</div>
+          <div class="rule-condition">Left &le; 200g: Right &ge; Left &times; 0.95 &rarr; Same</div>
+          <div class="rule-condition">Left &gt; 200g: Right &ge; Left &minus; 10 &rarr; Same</div>
+          <div class="rule-condition">Right &gt; Left &rarr; Directly Same</div>
+        </div>
+        <div class="rule" style="--i:2">
+          <div class="rule-title"><span class="n">03</span>Precious Metal Weight</div>
+          <p class="rule-formula">0.9 &lt; Right / Left &lt; 1.1 &rarr; Same</p>
+        </div>
+        <div class="rule" style="--i:3">
+          <div class="rule-title"><span class="n">04</span>Accessory Size</div>
+          <p class="rule-formula">0.9 &lt; Right / Left &lt; 1.1 &rarr; Same</p>
+        </div>
+        <div class="rule" style="--i:4">
+          <div class="rule-title"><span class="n">05</span>Belts &amp; Ropes</div>
+          <div class="rule-condition">Width: 0.9 &lt; Right / Left &lt; 1.1</div>
+          <div class="rule-condition">Thickness: 0.9 &lt; Right / Left &lt; 1.1</div>
+          <div class="rule-condition">Length: difference &lt; 30cm and 0.8 &lt; Right / Left &lt; 1.2 &rarr; Same</div>
+          <p class="conversion-note">Supports automatic inch conversion (1 inch = 2.54 cm)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: calculator -->
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">03</span>Calculator</div></div>
+      <div class="panel-body">
+
+        <!-- Bags -->
+        <div class="input-group active" id="bag-input">
+          <div class="sides">
+            <div class="side">
+              <div class="side-title">&larr; Left item</div>
+              <div class="input-item"><label for="bag-left-length">Length (<span class="u" data-for="bag-left-length">cm</span>)</label><div class="field"><input type="number" id="bag-left-length" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="bag-left-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-left-width">Width (<span class="u" data-for="bag-left-width">cm</span>)</label><div class="field"><input type="number" id="bag-left-width" step="0.1" class="nav-input" data-row="1" data-col="0"><select class="unit-selector" data-target="bag-left-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-left-height">Height (<span class="u" data-for="bag-left-height">cm</span>)</label><div class="field"><input type="number" id="bag-left-height" step="0.1" class="nav-input" data-row="2" data-col="0"><select class="unit-selector" data-target="bag-left-height"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+            <div class="side">
+              <div class="side-title">Right item &rarr;</div>
+              <div class="input-item"><label for="bag-right-length">Length (<span class="u" data-for="bag-right-length">cm</span>)</label><div class="field"><input type="number" id="bag-right-length" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="bag-right-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-right-width">Width (<span class="u" data-for="bag-right-width">cm</span>)</label><div class="field"><input type="number" id="bag-right-width" step="0.1" class="nav-input" data-row="1" data-col="1"><select class="unit-selector" data-target="bag-right-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-right-height">Height (<span class="u" data-for="bag-right-height">cm</span>)</label><div class="field"><input type="number" id="bag-right-height" step="0.1" class="nav-input" data-row="2" data-col="1"><select class="unit-selector" data-target="bag-right-height"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clothing Fabric Weight -->
+        <div class="input-group" id="clothing-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="clothing-left">Weight (g)</label><div class="field"><input type="number" id="clothing-left" step="0.1" class="nav-input" data-row="0" data-col="0"><span class="unit-static">g</span></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="clothing-right">Weight (g)</label><div class="field"><input type="number" id="clothing-right" step="0.1" class="nav-input" data-row="0" data-col="1"><span class="unit-static">g</span></div></div></div>
+          </div>
+        </div>
+
+        <!-- Precious Metal Weight -->
+        <div class="input-group" id="metal-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="metal-left">Weight (g)</label><div class="field"><input type="number" id="metal-left" step="0.1" class="nav-input" data-row="0" data-col="0"><span class="unit-static">g</span></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="metal-right">Weight (g)</label><div class="field"><input type="number" id="metal-right" step="0.1" class="nav-input" data-row="0" data-col="1"><span class="unit-static">g</span></div></div></div>
+          </div>
+        </div>
+
+        <!-- Accessory Size -->
+        <div class="input-group" id="accessory-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="accessory-left">Size (<span class="u" data-for="accessory-left">cm</span>)</label><div class="field"><input type="number" id="accessory-left" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="accessory-left"><option value="cm">cm</option><option value="inch">inch</option></select></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="accessory-right">Size (<span class="u" data-for="accessory-right">cm</span>)</label><div class="field"><input type="number" id="accessory-right" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="accessory-right"><option value="cm">cm</option><option value="inch">inch</option></select></div></div></div>
+          </div>
+        </div>
+
+        <!-- Belts & Ropes -->
+        <div class="input-group" id="belt-input">
+          <div class="sides">
+            <div class="side">
+              <div class="side-title">&larr; Left item</div>
+              <div class="input-item"><label for="belt-left-width">Width (<span class="u" data-for="belt-left-width">cm</span>)</label><div class="field"><input type="number" id="belt-left-width" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="belt-left-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-left-thickness">Thickness (<span class="u" data-for="belt-left-thickness">cm</span>)</label><div class="field"><input type="number" id="belt-left-thickness" step="0.1" class="nav-input" data-row="1" data-col="0"><select class="unit-selector" data-target="belt-left-thickness"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-left-length">Length (<span class="u" data-for="belt-left-length">cm</span>)</label><div class="field"><input type="number" id="belt-left-length" step="0.1" class="nav-input" data-row="2" data-col="0"><select class="unit-selector" data-target="belt-left-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+            <div class="side">
+              <div class="side-title">Right item &rarr;</div>
+              <div class="input-item"><label for="belt-right-width">Width (<span class="u" data-for="belt-right-width">cm</span>)</label><div class="field"><input type="number" id="belt-right-width" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="belt-right-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-right-thickness">Thickness (<span class="u" data-for="belt-right-thickness">cm</span>)</label><div class="field"><input type="number" id="belt-right-thickness" step="0.1" class="nav-input" data-row="1" data-col="1"><select class="unit-selector" data-target="belt-right-thickness"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-right-length">Length (<span class="u" data-for="belt-right-length">cm</span>)</label><div class="field"><input type="number" id="belt-right-length" step="0.1" class="nav-input" data-row="2" data-col="1"><select class="unit-selector" data-target="belt-right-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="primary" id="calculate"><span>Calculate Difference</span><span aria-hidden="true">&rarr;</span></button>
+          <button id="reset">Reset</button>
+        </div>
+
+        <div class="notice" id="calcNotice"></div>
+
+        <div class="calc-results">
+          <div class="result-item">
+            <div class="result-title"><span>Calculation Result</span><span>A</span></div>
+            <div class="result-big" id="result-text">-</div>
+            <p class="explanation" id="result-explanation">Waiting for calculation...</p>
+          </div>
+          <div class="result-item">
+            <div class="result-title"><span>Calculation Details</span><span>B</span></div>
+            <div id="calculation-details">-</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>All calculations run locally in this browser.</span>
+    <span>Ratio = right item &divide; left item</span>
+  </footer>
+  </div><!-- /view-calc -->
+</div>
+
+<script>
+(() => {
+  const input = document.getElementById('jsonInput');
+  const scanBtn = document.getElementById('scanBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const copyAllBtn = document.getElementById('copyAllBtn');
+  const exampleBtn = document.getElementById('exampleBtn');
+  const fileInput = document.getElementById('fileInput');
+  const dropZone = document.getElementById('dropZone');
+  const notice = document.getElementById('notice');
+  const productCount = document.getElementById('productCount');
+  const seedCount = document.getElementById('seedCount');
+  const seedRate = document.getElementById('seedRate');
+  const rateBar = document.getElementById('rateBar');
+  const emptyState = document.getElementById('emptyState');
+  const seedList = document.getElementById('seedList');
+
+  let seeds = [];
+
+  // day / night toggle
+  const themeBtn = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  let themeTimer;
+  const syncTheme = () => themeBtn.setAttribute('aria-pressed', String(root.dataset.theme === 'light'));
+  syncTheme();
+  themeBtn.addEventListener('click', () => {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.classList.add('theme-switching');
+    root.dataset.theme = next;
+    syncTheme();
+    try { localStorage.setItem('seed-theme', next); } catch (e) {}
+    clearTimeout(themeTimer);
+    themeTimer = setTimeout(() => root.classList.remove('theme-switching'), 700);
+  });
+
+  const example = {
+    result: {
+      dataList: [
+        { dataId: 8873283001, dataType: 1, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Product A' } } },
+        { dataId: 8873283010, dataType: 2, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Juste un Clou Bracelet 18K Rose Gold Small' } } },
+        { dataId: 8873283020, dataType: 1, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Product C' } } }
+      ]
+    }
+  };
+
+  const status = document.getElementById('status');
+  const resultsPanel = document.querySelector('.results');
+  resultsPanel.addEventListener('animationend', e => { if (e.animationName === 'scan') resultsPanel.classList.remove('scanning'); });
+
+  // eased count-up
+  function countTo(el, to, decimals = 0, suffix = '') {
+    const fmt = v => (decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || to === 0) { el.textContent = fmt(to); return; }
+    const start = performance.now(), dur = 900;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / dur);
+      el.textContent = fmt(to * (1 - Math.pow(1 - t, 4)));
+      if (t < 1) requestAnimationFrame(tick); else el.textContent = fmt(to);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function setEmpty(kind) {
+    const none = kind === 'none';
+    emptyState.hidden = false;
+    emptyState.innerHTML = `
+      <div class="empty-big">00</div>
+      <strong>${none ? 'No seeds found' : 'No scan yet'}</strong>
+      <div class="empty-sub">${none ? 'No items with <code>dataType: 2</code> were found in this response.' : 'Your extracted seeds will appear here.'}</div>`;
+  }
+
+  function showNotice(message, type = 'error') {
+    notice.className = 'notice ' + type;
+    notice.innerHTML = `<b class="tag">${type === 'success' ? 'OK' : 'ERR'}</b>`;
+    const span = document.createElement('span');
+    span.textContent = message;
+    notice.appendChild(span);
+  }
+  function clearNotice() { notice.textContent = ''; notice.className = 'notice'; }
+
+  function extract(data) {
+    const items = data?.result?.dataList;
+    if (!Array.isArray(items)) throw new Error('Could not find result.dataList in this JSON. Make sure you pasted the outer-list response.');
+    const found = items.filter(item => item?.dataType === 2).map(item => ({
+      dataId: item?.dataId ?? '—',
+      productTitle: item?.badCaseGoodsPairDTO?.goodsInfo?.goodsTitle ?? '(No product title found)'
+    }));
+    return { total: items.length, found };
+  }
+
+  function render(total, found) {
+    seeds = found;
+    const rate = total ? (found.length / total) * 100 : 0;
+    countTo(productCount, total);
+    countTo(seedCount, found.length);
+    countTo(seedRate, rate, 1, '%');
+    status.textContent = found.length + (found.length === 1 ? ' seed' : ' seeds');
+    resultsPanel.classList.remove('scanning'); void resultsPanel.offsetWidth; resultsPanel.classList.add('scanning');
+    rateBar.style.width = Math.min(rate, 100) + '%';
+    copyAllBtn.disabled = found.length === 0;
+
+    if (!found.length) {
+      setEmpty('none');
+      seedList.hidden = true;
+      seedList.innerHTML = '';
+      return;
+    }
+
+    emptyState.hidden = true;
+    seedList.hidden = false;
+    seedList.innerHTML = found.map((seed, i) => `
+      <article class="seed" style="--i:${i}">
+        <div class="seed-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="seed-body">
+          <div class="seed-tag">Seed item</div>
+          <div class="title">${escapeHtml(seed.productTitle)}</div>
+          <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
+          <div class="seed-actions">
+            <button data-copy-title="${i}"><span class="label">Copy Title</span></button>
+            <button data-copy-id="${i}"><span class="label">Copy ID</span></button>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    seedList.querySelectorAll('[data-copy-title]').forEach(btn => btn.addEventListener('click', () => copyText(seeds[btn.dataset.copyTitle].productTitle, btn)));
+    seedList.querySelectorAll('[data-copy-id]').forEach(btn => btn.addEventListener('click', () => copyText(String(seeds[btn.dataset.copyId].dataId), btn)));
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  async function copyText(text, button) {
+    try {
+      await navigator.clipboard.writeText(text);
+      const label = button.querySelector('.label');
+      const old = label.textContent;
+      label.textContent = 'Copied';
+      button.classList.add('done');
+      setTimeout(() => { label.textContent = old; button.classList.remove('done'); }, 900);
+    } catch {
+      showNotice('Clipboard access was blocked by the browser. You can select and copy the text manually.', 'error');
+    }
+  }
+
+  scanBtn.addEventListener('click', () => {
+    clearNotice();
+    const raw = input.value.trim();
+    if (!raw) { showNotice('Paste the outer-list JSON first.'); return; }
+    try {
+      const data = JSON.parse(raw);
+      const result = extract(data);
+      render(result.total, result.found);
+      showNotice(`Scan complete — ${result.found.length} seed${result.found.length === 1 ? '' : 's'} found.`, 'success');
+    } catch (err) {
+      showNotice(err instanceof Error ? err.message : 'Unable to read this JSON.');
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    seeds = [];
+    productCount.textContent = '—'; seedCount.textContent = '—'; seedRate.textContent = '—';
+    rateBar.style.width = '0';
+    status.textContent = 'Idle';
+    copyAllBtn.disabled = true;
+    seedList.hidden = true; seedList.innerHTML = '';
+    setEmpty('idle');
+    clearNotice();
+  });
+
+  copyAllBtn.addEventListener('click', () => {
+    const text = seeds.map((s, i) => `${i + 1}. ${s.productTitle}\n   Data ID: ${s.dataId}`).join('\n\n');
+    copyText(text, copyAllBtn);
+  });
+
+  exampleBtn.addEventListener('click', () => {
+    input.value = JSON.stringify(example, null, 2);
+    clearNotice();
+    scanBtn.click();
+  });
+
+  fileInput.addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    input.value = await file.text();
+    clearNotice();
+  });
+
+  ['dragenter','dragover'].forEach(event => dropZone.addEventListener(event, e => { e.preventDefault(); dropZone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(event => dropZone.addEventListener(event, e => { e.preventDefault(); dropZone.classList.remove('drag'); }));
+  dropZone.addEventListener('drop', async e => {
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    input.value = await file.text();
+    clearNotice();
+  });
+
+  setEmpty('idle');
+})();
+</script>
+<script>
+(() => {
+
+  const $$ = sel => document.querySelectorAll(sel);
+  const $  = sel => document.querySelector(sel);
+
+  // ----- feedback helpers (same patterns as the scanner) -----
+  const calcResults = $('.calc-results');
+  const calcNotice = $('#calcNotice');
+  function showCalcNotice(message) {
+    calcNotice.className = 'notice error';
+    calcNotice.innerHTML = '<b class="tag">ERR</b>';
+    const span = document.createElement('span');
+    span.textContent = message;
+    calcNotice.appendChild(span);
+  }
+  function clearCalcNotice() { calcNotice.textContent = ''; calcNotice.className = 'notice'; }
+  function restart(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function playResult() {
+    restart(calcResults, 'scanning');
+    restart($('#result-text'), 'reveal');
+    restart($('#result-explanation'), 'reveal');
+    restart($('#calculation-details'), 'reveal');
+  }
+  calcResults.addEventListener('animationend', e => { if (e.animationName === 'scan') calcResults.classList.remove('scanning'); });
+
+  // Reads an input and always returns centimetres when the field has a unit selector
+  const getVal = sel => {
+    const el = $(sel);
+    let v = parseFloat(el.value) || 0;
+    const unit = document.querySelector(`.unit-selector[data-target="${el.id}"]`);
+    if (unit && unit.value === 'inch') v *= 2.54;
+    return v;
+  };
+
+  // Unit conversion: keeps the physical size the same when the unit is switched
+  $$('.unit-selector').forEach(sel =>
+    sel.addEventListener('change', e => {
+      const id = e.target.dataset.target;
+      const inp = $(`#${id}`);
+      const v = parseFloat(inp.value);
+      if (!isNaN(v))
+        inp.value = (e.target.value === 'inch' ? v / 2.54 : v * 2.54).toFixed(2);
+      const label = $(`.u[data-for="${id}"]`);
+      if (label) label.textContent = e.target.value;
+    })
+  );
+
+  // Switch categories
+  $$('.category-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      $$('.category-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.input-group').forEach(g => g.classList.remove('active'));
+      $(`#${btn.dataset.category}-input`).classList.add('active');
+      reset();
+    })
+  );
+
+  function reset() {
+    clearCalcNotice();
+    $$('input[type=number]').forEach(i => i.value = '');
+    $('#result-text').textContent = '-';
+    $('#result-text').className = 'result-big';
+    $('#result-explanation').textContent = 'Waiting for calculation...';
+    $('#calculation-details').textContent = '-';
+  }
+
+  $('#reset').addEventListener('click', reset);
+
+  $('#calculate').addEventListener('click', () => {
+    clearCalcNotice();
+    const cat = $('.category-btn.active').dataset.category;
+    let ok = false, detail = '';
+    const n = x => +x.toFixed(2);
+
+    switch (cat) {
+      case 'bag': {
+        const ll = getVal('#bag-left-length'), lw = getVal('#bag-left-width'), lh = getVal('#bag-left-height');
+        const rl = getVal('#bag-right-length'), rw = getVal('#bag-right-width'), rh = getVal('#bag-right-height');
+        if (!(ll && lw && lh && rl && rw && rh)) return showCalcNotice('Please enter all values.');
+        const lv = ll * lw * lh, rv = rl * rw * rh, r = rv / lv;
+        detail = `Left item volume=${lv.toFixed(2)} cm³, Right item volume=${rv.toFixed(2)} cm³, Ratio=${r.toFixed(3)}`;
+        ok = r > 0.8 && r < 1.2;
+        break;
+      }
+      case 'clothing': {
+        const l = getVal('#clothing-left'), r = getVal('#clothing-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        detail = `Left item=${l.toFixed(1)} g, Right item=${r.toFixed(1)} g`;
+        if (r > l) { ok = true; detail += ' → Right item>Left item, directly same'; }
+        else if (l <= 200) { ok = r >= l * 0.95; detail += ` → Need Right item≥${(l * 0.95).toFixed(1)} g`; }
+        else { ok = r >= l - 10; detail += ` → Need Right item≥${(l - 10).toFixed(1)} g`; }
+        break;
+      }
+      case 'metal': {
+        const l = getVal('#metal-left'), r = getVal('#metal-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        const ratio = r / l;
+        detail = `Left item=${l} g, Right item=${r} g, Ratio=${ratio.toFixed(3)}`;
+        ok = ratio > 0.9 && ratio < 1.1;
+        break;
+      }
+      case 'accessory': {
+        const l = getVal('#accessory-left'), r = getVal('#accessory-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        const ratio = r / l;
+        detail = `Left item=${n(l)} cm, Right item=${n(r)} cm, Ratio=${ratio.toFixed(3)}`;
+        ok = ratio > 0.9 && ratio < 1.1;
+        break;
+      }
+      case 'belt': {
+        // Width
+        const lw = getVal('#belt-left-width'), rw = getVal('#belt-right-width');
+        let wOk = true, wMsg = '';
+        if (lw && rw) {
+          const wr = rw / lw;
+          wOk = wr > 0.9 && wr < 1.1;
+          wMsg = `Width ratio=${wr.toFixed(2)} (${wOk ? 'pass' : 'fail'})`;
+        } else { wMsg = 'Width not entered'; }
+
+        // Thickness
+        const lt = getVal('#belt-left-thickness'), rt = getVal('#belt-right-thickness');
+        let tOk = true, tMsg = '';
+        if (lt && rt) {
+          const tr = rt / lt;
+          tOk = tr > 0.9 && tr < 1.1;
+          tMsg = `Thickness ratio=${tr.toFixed(2)} (${tOk ? 'pass' : 'fail'})`;
+        } else { tMsg = 'Thickness not entered'; }
+
+        // Length
+        const ll = getVal('#belt-left-length'), rl = getVal('#belt-right-length');
+        let lOk = true, lMsg = '';
+        if (ll && rl) {
+          const ld = Math.abs(rl - ll), lr = rl / ll;
+          lOk = ld < 30 && lr > 0.8 && lr < 1.2;
+          lMsg = `Length difference=${ld.toFixed(1)} cm, Length ratio=${lr.toFixed(2)} (${lOk ? 'pass' : 'fail'})`;
+        } else { lMsg = 'Length not entered'; }
+
+        // All entered items must be qualified
+        ok = wOk && tOk && lOk;
+        detail = [wMsg, tMsg, lMsg].join(' | ');
+        break;
+      }
+    }
+
+    $('#result-text').textContent = ok ? 'Same' : 'Not Same';
+    $('#result-text').className = ok ? 'result-big same' : 'result-big different';
+    $('#result-explanation').textContent = ok ? 'Left item and right item data are within the allowed difference range' : 'Data exceeds the allowed difference range';
+    $('#calculation-details').textContent = detail;
+    playResult();
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function (e) {
+    // Only act inside the calculator (the scanner tab has its own controls)
+    if (!(e.target.closest && e.target.closest('#view-calc'))) return;
+
+    // Enter inside a field runs the calculation (buttons keep their normal Enter behaviour)
+    if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+      e.preventDefault();
+      $('#calculate').click();
+    }
+
+    // Arrow key navigation (only for input fields)
+    if (e.target.classList.contains('nav-input') &&
+        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+
+      e.preventDefault();
+      const currentInput = e.target;
+      const row = parseInt(currentInput.dataset.row);
+      const col = parseInt(currentInput.dataset.col);
+      const activeGroup = document.querySelector('.input-group.active');
+
+      let nextInput = null;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          if (row > 0) {
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row - 1}"][data-col="${col}"]`);
+          }
+          break;
+        case 'ArrowDown':
+          nextInput = activeGroup.querySelector(`.nav-input[data-row="${row + 1}"][data-col="${col}"]`);
+          if (!nextInput) {
+            // Try the first row in the same column
+            const firstInCol = activeGroup.querySelector(`.nav-input[data-col="${col}"]`);
+            if (firstInCol) nextInput = firstInCol;
+          }
+          break;
+        case 'ArrowLeft':
+          if (col > 0) {
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row}"][data-col="${col - 1}"]`);
+          }
+          break;
+        case 'ArrowRight':
+          nextInput = activeGroup.querySelector(`.nav-input[data-row="${row}"][data-col="${col + 1}"]`);
+          if (!nextInput) {
+            // Try the first column in the next row
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row + 1}"][data-col="0"]`);
+          }
+          break;
+      }
+
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
+      }
+    }
+  });
+
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const tabs = [...document.querySelectorAll('.tab')];
+  const views = { scanner: document.getElementById('view-scanner'), calc: document.getElementById('view-calc') };
+  const hashes = { scanner: 'seed-scanner', calc: 'size-calculator' };
+  const titles = { scanner: 'Seed Scanner', calc: 'Size Difference Calculator' };
+  let current = 'scanner';
+
+  function activate(name, replay) {
+    if (!views[name] || name === current) return;
+    current = name;
+    if (replay) root.classList.add('replay');   // shorter entrance timing after the first load
+    Object.entries(views).forEach(([key, el]) => { el.hidden = key !== name; });
+    tabs.forEach(t => {
+      if (t.dataset.view === name) t.setAttribute('aria-current', 'page');
+      else t.removeAttribute('aria-current');
+    });
+    document.title = titles[name];
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    activate(t.dataset.view, true);
+    try { history.replaceState(null, '', '#' + hashes[t.dataset.view]); } catch (e) {}
+  }));
+
+  const fromHash = () => Object.keys(hashes).find(k => '#' + hashes[k] === location.hash);
+  const start = fromHash();
+  if (start) activate(start, false);
+  window.addEventListener('hashchange', () => { const k = fromHash(); if (k) activate(k, true); });
+})();
+</script>
+</body>
+</html>
