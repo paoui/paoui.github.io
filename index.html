@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>try{var t=localStorage.getItem('seed-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seed Scanner</title>
+<title>Tool Kit</title>
 <style>
   * { box-sizing: border-box; border-radius: 0; }
   [hidden] { display: none !important; }
@@ -343,7 +343,7 @@
 <div class="sheet">
 
   <nav class="meta" aria-label="Tools">
-    <button type="button" class="tab" data-view="scanner" aria-current="page"><span class="n">01</span>Seed Scanner</button>
+    <button type="button" class="tab" data-view="scanner" aria-current="page"><span class="n">01</span>Batch Scanner</button>
     <button type="button" class="tab" data-view="calc"><span class="n">02</span>Size Calculator</button>
     <div class="meta-end">
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle day and night mode" aria-pressed="false">
@@ -979,7 +979,7 @@
   const tabs = [...document.querySelectorAll('.tab')];
   const views = { scanner: document.getElementById('view-scanner'), calc: document.getElementById('view-calc') };
   const hashes = { scanner: 'seed-scanner', calc: 'size-calculator' };
-  const titles = { scanner: 'Seed Scanner', calc: 'Size Difference Calculator' };
+  const titles = { scanner: 'Batch Scanner', calc: 'Size Difference Calculator' };
   let current = 'scanner';
 
   function activate(name, replay) {
