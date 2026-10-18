@@ -1,178 +1,450 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('seed-theme')==='dark'?'dark':'light';}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seed Scanner</title>
+<title>Item Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&display=block" rel="stylesheet">
+
 <style>
+
+  /* ============ NEO-BRUTALIST TOKENS ============ */
   * { box-sizing: border-box; border-radius: 0; }
   [hidden] { display: none !important; }
-  ::selection { background: #000; color: #fff; }
-
+  ::selection { background: var(--yellow); color: #000; }
   :root {
-    --ink: #000;
-    --paper: #fff;
-    --gray: #6b6b6b;
-    --b: 3px;
-    --sans: "Helvetica Neue", Helvetica, Arial, "Inter", sans-serif;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    --ink: #000; --paper: #FFFDF5; --card: #fff; --line: #000; --black: #000; --white: #fff;
+    --inv: #000; --on-inv: #fff; --idx: #FFD93D;
+    --red: #FF6B6B; --yellow: #FFD93D; --violet: #C4B5FD;
+    --dot: #000; --grid-line: rgba(0,0,0,.1);
+    color-scheme: light;
+    --b: 4px;
+    --sh-s: 4px 4px 0 var(--line); --sh-m: 8px 8px 0 var(--line); --sh-l: 12px 12px 0 var(--line);
+    --sans: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --snap: .1s ease-out;
+    --dots: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
+    --dots-k: radial-gradient(#000 1.5px, transparent 1.5px);
+    --grid: linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    --grid-k: linear-gradient(to right, rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.1) 1px, transparent 1px);
   }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    -webkit-font-smoothing: antialiased;
+  /* NIGHT: ink-purple paper, cream lines and shadows, same loud accents */
+  :root[data-theme="dark"] {
+    --ink: #FFFDF5; --paper: #16121F; --card: #241C36; --line: #FFFDF5;
+    --inv: #FFFDF5; --on-inv: #16121F; --idx: #6D28D9;
+    /* night accents: hot pink / acid lime / electric cyan (all keep black text at AAA contrast) */
+    --red: #FF5FA2; --yellow: #B6F442; --violet: #5EE7F5;
+    --dot: rgba(255,253,245,.14); --grid-line: rgba(255,253,245,.07);
+    color-scheme: dark;
   }
-  button, textarea { font: inherit; color: inherit; }
-  code { font-family: var(--mono); font-size: .88em; border: 2px solid var(--ink); padding: 1px 5px; }
-
-  /* Sheet frame */
-  .sheet { width: min(1240px, calc(100% - 32px)); margin: 24px auto; border: var(--b) solid var(--ink); }
-
-  /* Meta bar */
-  .meta { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--b) solid var(--ink); font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
-  .meta > div { padding: 12px 20px; border-right: var(--b) solid var(--ink); }
-  .meta > div:last-child { border-right: 0; text-align: right; }
-
-  /* Hero */
-  .hero { display: grid; grid-template-columns: 1fr minmax(260px, 360px); gap: 32px; align-items: end; padding: 28px 24px 26px; border-bottom: var(--b) solid var(--ink); }
-  h1 { margin: 0; font-size: clamp(54px, 11vw, 150px); line-height: .84; letter-spacing: -.055em; font-weight: 800; text-transform: uppercase; }
-  .hero-note .label { font: 700 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; display: block; }
-  .subtitle { margin: 0; font-size: 14px; line-height: 1.6; font-weight: 500; }
-
-  /* Grid */
-  .grid { display: grid; grid-template-columns: 1.05fr .95fr; }
-  .panel { min-width: 0; }
-  .panel + .panel { border-left: var(--b) solid var(--ink); }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--ink); color: var(--paper); padding: 10px 20px; min-height: 52px; }
-  .panel-title { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; display: flex; gap: 12px; align-items: baseline; }
-  .panel-title .idx { font-family: var(--mono); font-weight: 400; opacity: .6; }
-  .panel-body { padding: 20px; }
-
-  /* Buttons */
-  button {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    border: var(--b) solid var(--ink); background: var(--paper); color: var(--ink);
-    padding: 12px 18px; cursor: pointer; font-weight: 800; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    box-shadow: 4px 4px 0 var(--ink);
-    transition: transform .08s, box-shadow .08s, background .08s, color .08s;
-  }
-  button:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
-  button:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
-  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-  button.primary { background: var(--ink); color: var(--paper); box-shadow: none; }
-  button.primary:hover { background: var(--paper); color: var(--ink); box-shadow: 6px 6px 0 var(--ink); }
-  button.done { background: var(--ink) !important; color: var(--paper) !important; }
-  button:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .head-btn { border: 2px solid var(--paper); background: transparent; color: var(--paper); box-shadow: none; padding: 8px 12px; font-size: 11px; }
-  .head-btn:hover { background: var(--paper); color: var(--ink); transform: none; box-shadow: none; }
-  .head-btn:active { transform: none; }
-  .head-btn.done { background: var(--paper) !important; color: var(--ink) !important; }
-
-  /* Drop + textarea */
-  .drop {
-    border: 2px dashed var(--ink); padding: 16px; margin-bottom: 16px; text-align: left;
-    font: 700 11px/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; transition: background .1s, color .1s;
-  }
-  .drop label { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-  .drop.drag { background: var(--ink); color: var(--paper); }
+  body { margin: 0; min-height: 100vh; color: var(--ink); font-family: var(--sans); font-weight: 700; -webkit-font-smoothing: antialiased;
+    background-color: var(--paper); background-image: var(--dots); background-size: 24px 24px; }
+  button, textarea, input, select { font: inherit; color: inherit; }
+  code { font-family: var(--mono); font-size: .88em; font-weight: 700; background: var(--card); border: 2px solid var(--line); padding: 1px 5px; }
   input[type=file] { display: none; }
 
-  textarea {
-    width: 100%; min-height: 400px; resize: vertical; border: var(--b) solid var(--ink); background: var(--paper);
-    padding: 16px; outline: none; font: 13px/1.6 var(--mono); transition: box-shadow .1s, transform .1s;
-  }
-  textarea::placeholder { color: #8a8a8a; }
-  textarea:focus { box-shadow: 6px 6px 0 var(--ink); transform: translate(-3px, -3px); }
+  /* Sheet */
+  .sheet { width: min(1240px, calc(100% - 40px)); margin: 28px auto 40px; border: var(--b) solid var(--line); background: var(--paper); box-shadow: 16px 16px 0 var(--line); }
 
-  .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px; }
+  /* Nav / tabs */
+  .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; border-bottom: var(--b) solid var(--line); background: var(--card); }
+  .tab { width: 100%; justify-content: flex-start; padding: 16px 20px; border: 0; border-right: var(--b) solid var(--line); background: var(--card); box-shadow: none;
+    font-size: 13px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; text-align: left; transition: background var(--snap); }
+  .tab .n { margin-right: 12px; font-weight: 700; }
+  .tab:hover { background: var(--yellow); transform: none; box-shadow: none; }
+  .tab:active { transform: none; box-shadow: none; }
+  .tab[aria-current="page"] { background: var(--red); box-shadow: inset 0 -8px 0 var(--line); }
+  .meta-end { display: flex; align-items: center; justify-content: flex-end; padding: 10px 20px;
+    background: var(--violet); background-image: var(--dots-k); background-size: 12px 12px; }
+  .sticker { display: inline-block; background: var(--yellow); border: 3px solid var(--line); box-shadow: var(--sh-s); padding: 6px 10px; transform: rotate(-2deg);
+    font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; transition: transform var(--snap); }
+  .sticker:hover { transform: rotate(3deg); }
 
-  /* Notice */
-  .notice { display: none; margin-top: 20px; border: var(--b) solid var(--ink); padding: 12px 14px; font: 500 12px/1.5 var(--mono); align-items: flex-start; gap: 12px; }
-  .notice .tag { font-weight: 700; padding: 2px 7px; letter-spacing: .1em; flex-shrink: 0; }
-  .notice.success { display: flex; background: var(--paper); }
-  .notice.success .tag { background: var(--ink); color: var(--paper); }
-  .notice.error { display: flex; background: var(--ink); color: var(--paper); }
-  .notice.error .tag { background: var(--paper); color: var(--ink); }
+  /* Hero */
+  .hero { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr minmax(260px, 360px); gap: 32px; align-items: end; padding: 36px 28px 40px; border-bottom: var(--b) solid var(--line);
+    background-color: var(--yellow); background-image: var(--grid-k); background-size: 40px 40px; }
+  .view-calc .hero { background-color: var(--violet); }
+  .hero::after { content: "\2605"; position: absolute; top: 14px; right: 22px; font-size: 54px; line-height: 1; animation: spin 10s linear infinite; }
+  h1 { margin: 0; font-size: clamp(54px, 11vw, 140px); line-height: .85; letter-spacing: -.06em; font-weight: 900; text-transform: uppercase; }
+  .ln:nth-child(2) > span { color: transparent; -webkit-text-stroke: 3px #000; }
+  .ln:nth-child(1) > span { text-shadow: 6px 6px 0 #fff; }
+  .hero-note { background: var(--card); border: var(--b) solid var(--line); box-shadow: var(--sh-m); padding: 16px 18px 18px; transform: rotate(1.5deg); }
+  .hero-note .label { display: inline-block; margin-bottom: 12px; padding: 4px 8px; background: var(--inv); color: var(--on-inv); font-size: 11px; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
+  .subtitle { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 700; }
+  .view-calc h1 { font-size: clamp(40px, 7.5vw, 108px); }
+
+  /* Layout */
+  .grid { display: grid; grid-template-columns: 1.05fr .95fr; }
+  .view-calc .grid { grid-template-columns: .9fr 1.1fr; }
+  .panel { min-width: 0; }
+  .panel + .panel { border-left: var(--b) solid var(--line); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 10px 20px; background: var(--inv); color: var(--on-inv); border-bottom: var(--b) solid var(--line); }
+  .panel-title { display: flex; gap: 12px; align-items: baseline; font-size: 15px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+  .panel-title .idx { color: var(--idx); }
+  .panel-status { font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: var(--idx); }
+  .panel-body { padding: 24px 20px; }
+
+  /* Buttons: hard shadow, push down on press */
+  button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    border: var(--b) solid var(--line); background: var(--card); color: var(--ink); box-shadow: var(--sh-s); padding: 12px 18px;
+    font-size: 13px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+    transition: transform var(--snap), box-shadow var(--snap), background var(--snap); }
+  button:hover { background: var(--yellow); }
+  button:active { transform: translate(4px, 4px); box-shadow: none; }
+  button:focus-visible, .field:focus-within, textarea:focus-visible { outline: 3px solid var(--line); outline-offset: 3px; }
+  button.primary { background: var(--red); }
+  button.primary:hover { background: var(--yellow); }
+  button.done, .head-btn.done { background: var(--yellow) !important; color: var(--ink) !important; }
+  button:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .head-btn { padding: 8px 12px; font-size: 11px; border-width: 3px; box-shadow: 3px 3px 0 var(--on-inv); }
+  .head-btn:active { box-shadow: none; }
+  .actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+
+  /* Drop + textarea */
+  .drop { margin-bottom: 18px; padding: 16px; border: var(--b) dashed var(--line); background: var(--card); font-size: 12px; line-height: 1.5; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; transition: background var(--snap); }
+  .drop label { cursor: pointer; background: var(--yellow); padding: 1px 5px; border: 2px solid var(--line); }
+  .drop.drag { background: var(--violet); }
+  textarea { width: 100%; min-height: 400px; resize: vertical; padding: 16px; background: var(--card); border: var(--b) solid var(--line); outline: none;
+    font: 700 13px/1.6 var(--mono); transition: background var(--snap), box-shadow var(--snap); }
+  textarea::placeholder { color: var(--ink); opacity: .4; }
+  textarea:focus { background: var(--yellow); box-shadow: var(--sh-s); }
+
+  /* Notices */
+  .notice { display: none; margin-top: 22px; padding: 12px 14px; border: var(--b) solid var(--line); box-shadow: var(--sh-s); font-size: 13px; line-height: 1.5; align-items: flex-start; gap: 12px; }
+  .notice .tag { flex-shrink: 0; padding: 2px 8px; border: 2px solid var(--line); font-weight: 900; letter-spacing: .12em; background: var(--card); }
+  .notice.success { display: flex; background: var(--yellow); }
+  .notice.error { display: flex; background: var(--red); }
 
   /* Stats */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--b) solid var(--ink); }
-  .stat { padding: 16px 20px 20px; border-right: var(--b) solid var(--ink); min-width: 0; }
-  .stat:last-child { border-right: 0; }
-  .stat-label { font: 700 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; display: flex; justify-content: space-between; margin-bottom: 18px; }
-  .stat-label span:last-child { color: var(--gray); }
-  .stat-value { font-size: clamp(34px, 5vw, 58px); font-weight: 800; letter-spacing: -.05em; line-height: .9; }
-  .bar { height: 12px; border: 2px solid var(--ink); margin-top: 14px; }
-  .bar span { display: block; height: 100%; width: 0; background: var(--ink); transition: width .5s steps(12); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--b) solid var(--line); }
+  .stat { min-width: 0; padding: 16px 20px 20px; border-right: var(--b) solid var(--line); }
+  .stat:nth-child(1) { background: var(--card); } .stat:nth-child(2) { background: var(--yellow); } .stat:nth-child(3) { background: var(--violet); border-right: 0; }
+  .stat-label { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+  .stat-value { font-size: clamp(34px, 5vw, 58px); font-weight: 900; letter-spacing: -.05em; line-height: .9; font-variant-numeric: tabular-nums; }
+  .bar { height: 16px; margin-top: 14px; border: 3px solid var(--line); background: var(--card); }
+  .bar span { display: block; height: 100%; width: 0; background: var(--inv); transition: width .5s ease-out; }
 
-  /* Empty */
+  /* Results panel texture */
+  .results { background-image: var(--grid); background-size: 40px 40px; }
   .empty { min-height: 380px; padding: 32px 24px; display: flex; flex-direction: column; justify-content: flex-end; }
-  .empty-big { font-size: clamp(90px, 14vw, 170px); font-weight: 800; line-height: .8; letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 3px var(--ink); margin-bottom: 20px; }
-  .empty strong { font-size: 20px; text-transform: uppercase; letter-spacing: .02em; font-weight: 800; }
-  .empty-sub { margin-top: 8px; font: 500 12px/1.6 var(--mono); color: var(--gray); }
+  .empty-big { margin-bottom: 20px; font-size: clamp(90px, 14vw, 170px); font-weight: 900; line-height: .8; letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 3px var(--line); text-shadow: 8px 8px 0 var(--violet); }
+  .empty strong { font-size: 22px; font-weight: 900; text-transform: uppercase; }
+  .empty-sub { margin-top: 8px; font-size: 14px; line-height: 1.5; }
 
   /* Seed list */
-  .seed-list { max-height: 640px; overflow-y: auto; }
-  .seed-list::-webkit-scrollbar { width: 12px; }
-  .seed-list::-webkit-scrollbar-track { background: var(--paper); border-left: 2px solid var(--ink); }
-  .seed-list::-webkit-scrollbar-thumb { background: var(--ink); }
-  .seed { display: grid; grid-template-columns: 76px 1fr; border-bottom: var(--b) solid var(--ink); animation: slide .3s steps(6) both; animation-delay: calc(var(--i, 0) * 40ms); }
+  .results { display: flex; flex-direction: column; }
+  .results > * { flex-shrink: 0; }
+  .results > .seed-list { flex: 1 1 0; min-height: 420px; overflow-y: auto; background: var(--paper); }
+  .results > .empty { flex: 1 1 auto; }
+  .seed-list::-webkit-scrollbar { width: 16px; }
+  .seed-list::-webkit-scrollbar-track { background: var(--card); border-left: 3px solid var(--line); }
+  .seed-list::-webkit-scrollbar-thumb { background: var(--inv); border: 3px solid var(--card); }
+  .seed { display: grid; grid-template-columns: 76px 1fr; border-bottom: var(--b) solid var(--line); animation: slide .3s ease-out both; animation-delay: calc(var(--i, 0) * 50ms); }
   .seed:last-child { border-bottom: 0; }
-  .seed-num { border-right: var(--b) solid var(--ink); padding: 16px 0; text-align: center; font: 800 28px/1 var(--mono); letter-spacing: -.04em; transition: background .1s, color .1s; }
-  .seed:hover .seed-num { background: var(--ink); color: var(--paper); }
-  .seed-body { padding: 16px 20px 18px; min-width: 0; }
-  .seed-tag { font: 700 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gray); }
-  .title { font-weight: 800; font-size: 17px; line-height: 1.3; margin: 8px 0 14px; overflow-wrap: anywhere; letter-spacing: -.01em; }
-  .id { display: inline-flex; align-items: stretch; border: 2px solid var(--ink); font: 600 12px/1 var(--mono); }
-  .id b { background: var(--ink); color: var(--paper); padding: 6px 8px; letter-spacing: .1em; }
+  .seed-num { padding: 16px 0; text-align: center; border-right: var(--b) solid var(--line); background: var(--yellow); font-size: 28px; font-weight: 900; letter-spacing: -.04em; transition: background var(--snap); }
+  .seed:hover .seed-num { background: var(--red); }
+  .seed-body { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px; align-items: start; padding: 16px 20px 18px; min-width: 0; }
+  .seed-tag { font-size: 10px; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
+  .title { margin: 8px 0 14px; font-size: 18px; font-weight: 900; line-height: 1.25; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .id { display: inline-flex; align-items: stretch; border: 3px solid var(--line); background: var(--card); box-shadow: 3px 3px 0 var(--line); font: 700 12px/1 var(--mono); }
+  .id b { padding: 6px 8px; background: var(--inv); color: var(--on-inv); letter-spacing: .1em; }
   .id span { padding: 6px 10px; }
-  .seed-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-  .seed-actions button { padding: 7px 10px; font-size: 10px; border-width: 2px; box-shadow: 3px 3px 0 var(--ink); }
-  .seed-actions button:hover { box-shadow: 5px 5px 0 var(--ink); }
-  .seed-actions button:active { box-shadow: 0 0 0 var(--ink); }
+  .seed-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .seed-actions button { padding: 7px 10px; font-size: 11px; border-width: 3px; box-shadow: 3px 3px 0 var(--line); }
+  .seed-actions button:active { box-shadow: none; }
+
+  /* Thumbnails */
+  .thumb { position: relative; width: 64px; height: 64px; padding: 0; overflow: hidden; border: 3px solid var(--line); background: var(--card); box-shadow: 3px 3px 0 var(--line); cursor: zoom-in; }
+  .thumb:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--line); background: var(--card); }
+  .thumb:active { transform: translate(3px, 3px); box-shadow: none; }
+  .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .thumb-n { position: absolute; right: 0; bottom: 0; padding: 3px 4px; background: var(--yellow); border-top: 2px solid var(--line); border-left: 2px solid var(--line); font-size: 10px; font-weight: 900; line-height: 1; }
+  .thumb.none { display: flex; align-items: center; justify-content: center; border-style: dashed; box-shadow: none; font-size: 9px; line-height: 1.2; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: default; }
+  .thumb.none:hover { transform: none; box-shadow: none; }
+
+  /* Multi JSON inputs */
+  .jin-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; min-height: 30px; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+  .jin-list { display: grid; gap: 18px; }
+  .mini { padding: 5px 8px; font-size: 11px; letter-spacing: .1em; border-width: 3px; box-shadow: 3px 3px 0 var(--line); }
+  .mini:active { box-shadow: none; }
+  .mini:disabled:hover { background: var(--card); }
+  .jin-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border: var(--b) solid var(--line); border-bottom: 0; background: var(--violet); font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+  .jin-head .name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden; }
+  .chip { padding: 3px 6px; border: 2px solid var(--line); background: var(--card); font-size: 10px; letter-spacing: .08em; }
+  .chip.err { background: var(--red); }
+  .jin textarea { min-height: 150px; }
+  .jin-list.single .jin textarea { min-height: 400px; }
+  .jin.collapsed .jin-head { border-bottom: var(--b) solid var(--line); }
+  .jin.collapsed textarea { display: none; }
+  .jin-err { padding: 10px 12px; border: var(--b) solid var(--line); border-top: 0; background: var(--red); font: 700 12px/1.5 var(--mono); overflow-wrap: anywhere; }
+  .jin-err:not([hidden]) { animation: appear .15s ease-out backwards; }
+  .jin-err::before { content: "ERR"; display: inline-block; margin-right: 10px; padding: 2px 7px; background: var(--inv); color: var(--on-inv); letter-spacing: .1em; }
+  .add-json { width: 100%; justify-content: flex-start; margin-top: 18px; padding: 14px 16px; border: var(--b) dashed var(--line); box-shadow: none; background: var(--card); font-size: 12px; }
+  .add-json:hover { background: var(--yellow); }
+  .busy .jin textarea { opacity: .6; }
+
+  /* Image viewer */
+  .lb { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; overscroll-behavior: contain; background: rgba(0,0,0,.65); animation: scrim .2s ease-out both; }
+  .lb-frame { display: flex; flex-direction: column; width: min(960px, 100%); height: min(88vh, 100%); background: var(--paper); border: var(--b) solid var(--line); box-shadow: var(--sh-l); }
+  .lb-head { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; background: var(--inv); color: var(--on-inv); }
+  .lb-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .lb-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; background-image: var(--grid); background-size: 40px 40px; }
+  .lb-stage.zoomed { cursor: grab; } .lb-stage.dragging { cursor: grabbing; }
+  .lb-img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; transform-origin: center; }
+  .lb-msg { position: absolute; padding: 10px 14px; border: var(--b) dashed var(--line); background: var(--yellow); font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+  .lb-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px; border-top: var(--b) solid var(--line); background: var(--card); font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .lb-bar .grow { flex: 1; }
+  .lb-bar .mini { padding: 8px 12px; }
 
   /* Footer */
-  .footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: var(--b) solid var(--ink); padding: 14px 20px; font: 700 10px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 16px 20px; border-top: var(--b) solid var(--line); background: var(--yellow); font-size: 11px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
 
-  @keyframes slide { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  /* ============ SIZE CALCULATOR ============ */
+  .category-btn { width: 100%; justify-content: space-between; text-align: left; padding: 18px 20px; border: 0; border-bottom: var(--b) solid var(--line); box-shadow: none; background: var(--card); font-size: 14px; animation: slide .3s ease-out calc(var(--i, 0) * 50ms) backwards; }
+  .category-btn .n { margin-right: 14px; font-weight: 700; letter-spacing: 0; }
+  .category-btn .arrow { opacity: 0; transition: transform var(--snap); }
+  .category-btn:hover { background: var(--yellow); box-shadow: inset 12px 0 0 var(--line); transform: none; }
+  .category-btn:hover .arrow { opacity: 1; transform: translateX(4px); }
+  .category-btn:active { transform: none; }
+  .category-btn.active { background: var(--red); box-shadow: inset 12px 0 0 var(--line); }
+  .category-btn.active .arrow { opacity: 1; }
+  .category-btn:focus-visible { outline-offset: -8px; }
+  .cat-fill { position: relative; min-height: 180px; padding: 24px 20px; background-color: var(--violet); background-image: var(--dots-k); background-size: 20px 20px; }
+  .cat-fill .sticker { transform: rotate(-3deg); }
+  .cat-fill p { margin: 18px 0 0; max-width: 28ch; font-size: 14px; line-height: 1.5; background: var(--card); border: 3px solid var(--line); box-shadow: var(--sh-s); padding: 10px 12px; transform: rotate(1deg); }
+
+  /* Help button + rules modal */
+  .help-btn { width: 36px; height: 36px; padding: 0; border-width: 3px; background: var(--yellow); box-shadow: 3px 3px 0 var(--on-inv); font-size: 18px; letter-spacing: 0; }
+  .help-btn:hover { background: #fff; color: #000; }
+  .help-btn:active { box-shadow: none; }
+  .head-right { display: flex; align-items: center; gap: 12px; }
+  .rules-modal { padding: 0; width: min(660px, calc(100% - 32px)); max-height: min(86vh, calc(100% - 32px)); overflow: hidden; color: var(--ink); background: var(--paper); border: var(--b) solid var(--line); box-shadow: var(--sh-l); }
+  .rules-modal[open] { display: flex; flex-direction: column; animation: pop .2s ease-out both; }
+  .rules-modal::backdrop { background: rgba(0,0,0,.65); animation: scrim .2s ease-out both; }
+  .rules-modal.closing::backdrop { animation: scrim .15s ease-in reverse both; }
+  .rules-modal.closing { animation: pop .15s ease-in reverse both; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 12px 20px; background: var(--yellow); border-bottom: var(--b) solid var(--line); }
+  .modal-title { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .modal-close { width: 40px; height: 40px; padding: 0; background: var(--inv); color: var(--on-inv); box-shadow: 3px 3px 0 #fff; border-color: var(--line); font-size: 16px; }
+  .modal-close:hover { background: var(--red); color: var(--ink); }
+  .modal-body { overflow-y: auto; }
+  .rule { padding: 18px 20px 20px; border-bottom: var(--b) solid var(--line); }
+  .rule:last-child { border-bottom: 0; }
+  .rule.current { background: var(--violet); }
+  .rule-title { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 15px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .rule-title .n { font-weight: 700; }
+  .rule-badge { display: none; padding: 2px 8px; border: 2px solid var(--line); background: var(--yellow); font-size: 10px; letter-spacing: .16em; transform: rotate(-2deg); }
+  .rule.current .rule-badge { display: inline-block; }
+  .rule-formula { margin: 0; padding: 10px 12px; background: var(--card); border: 3px solid var(--line); box-shadow: 3px 3px 0 var(--line); font: 700 13px/1.5 var(--mono); }
+  .rule-condition { font: 700 13px/1.8 var(--mono); }
+  .rule-condition::before { content: "\25A0\00a0"; }
+  .conversion-note { margin: 12px 0 0; font-size: 12px; font-weight: 700; }
+
+  /* Calculator inputs */
+  .input-group { display: none; }
+  .input-group.active { display: block; animation: group .2s ease-out both; }
+  .sides { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 22px; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-m); }
+  .side { padding: 18px 16px; min-width: 0; }
+  .side + .side { border-left: var(--b) solid var(--line); background: var(--paper); }
+  .side-title { display: inline-block; margin-bottom: 16px; padding: 6px 10px; background: var(--inv); color: var(--on-inv); font-size: 11px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; transform: rotate(-1.5deg); }
+  .side + .side .side-title { background: var(--red); color: var(--ink); border: 2px solid var(--line); transform: rotate(1.5deg); }
+  .input-item { margin-bottom: 14px; }
+  .input-item:last-child { margin-bottom: 0; }
+  .view-calc label, .view-timer label { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+  .field { display: flex; border: var(--b) solid var(--line); background: var(--card); transition: background var(--snap), box-shadow var(--snap); }
+  .field:focus-within { background: var(--yellow); box-shadow: var(--sh-s); outline: none; }
+  .field input { flex: 1; min-width: 0; padding: 12px 14px; border: 0; outline: none; background: transparent; font: 700 18px var(--mono); }
+  .field input::placeholder { color: var(--ink); opacity: .4; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .unit-selector, .unit-static { display: flex; align-items: center; justify-content: center; min-width: 68px; padding: 0 12px; border: 0; border-left: var(--b) solid var(--line); background: var(--violet); color: var(--ink); font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .unit-selector { -webkit-appearance: none; appearance: none; cursor: pointer; text-align: center; text-align-last: center; }
+  .unit-selector:hover { background: var(--yellow); }
+  .unit-selector option { background: var(--card); color: var(--ink); }
+  .unit-selector:focus-visible { outline: 3px solid var(--line); outline-offset: -6px; }
+  .button-group { display: flex; gap: 16px; margin-top: 4px; }
+  .button-group button { flex: 1; padding: 16px; }
+
+  /* Results */
+  .calc-results { position: relative; overflow: hidden; display: grid; gap: 22px; margin-top: 28px; padding: 6px 8px 8px 0; }
+  .result-item { padding: 14px 16px 18px; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-m); }
+  .result-title { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+  .result-big { position: relative; padding: 12px 14px; border: var(--b) solid var(--line); background: var(--paper); font-size: clamp(34px, 5vw, 56px); font-weight: 900; letter-spacing: -.05em; line-height: .95; text-transform: uppercase; }
+  .result-big.same { background: var(--yellow); }
+  .result-big.different { background: var(--red); padding-right: 92px; }
+  .result-big.different::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 64px; border-left: var(--b) solid var(--line); background: repeating-linear-gradient(45deg, #000 0 3px, var(--red) 3px 9px); }
+  .explanation { margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
+  #calculation-details { font: 700 13px/1.7 var(--mono); overflow-wrap: anywhere; }
+  .result-big.reveal { animation: wipe .3s ease-out both; }
+  .explanation.reveal, #calculation-details.reveal { animation: appear .25s ease-out .1s both; }
+
+  /* Motion: snappy and mechanical */
+  @keyframes group { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes lineUp { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(560%); } }
+  @keyframes slide { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes scrim { from { background: rgba(0,0,0,0); } to { background: rgba(0,0,0,.65); } }
+  @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+  .ln { display: block; overflow: hidden; padding: .14em .1em .14em 0; margin: -.14em 0; }
+  .ln > span { display: block; animation: lineUp .45s ease-out backwards; }
+  .ln:nth-child(2) > span { animation-delay: .1s; }
+  .hero-note { animation: appear .3s ease-out .3s backwards; }
+  .caret { animation: caret 1s steps(2, jump-none) infinite; }
+  .results, .calc-results { position: relative; overflow: hidden; }
+  .results.scanning::after, .calc-results.scanning::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 18%; background: var(--yellow); border-right: var(--b) solid var(--line); border-left: var(--b) solid var(--line); pointer-events: none; animation: scan .6s ease-out forwards; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
+  /* Responsive */
   @media (max-width: 850px) {
-    .grid { grid-template-columns: 1fr; }
-    .panel + .panel { border-left: 0; border-top: var(--b) solid var(--ink); }
-    .hero { grid-template-columns: 1fr; gap: 20px; }
-    textarea { min-height: 300px; }
+    .grid, .view-calc .grid { grid-template-columns: 1fr; }
+    .panel + .panel { border-left: 0; border-top: var(--b) solid var(--line); }
+    .hero { grid-template-columns: 1fr; gap: 24px; }
+    textarea, .jin-list.single .jin textarea { min-height: 300px; }
     .empty { min-height: 280px; }
+    .results > .seed-list { flex: none; min-height: 0; max-height: 640px; }
+  }
+  @media (max-width: 700px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .tab:nth-child(2) { border-right: 0; }
+    .meta-end { grid-column: 1 / -1; border-top: var(--b) solid var(--line); justify-content: center; }
   }
   @media (max-width: 520px) {
-    .sheet { width: calc(100% - 20px); margin: 10px auto; }
+    .sheet { width: calc(100% - 20px); margin: 10px auto 24px; box-shadow: 8px 8px 0 var(--line); }
     .meta { grid-template-columns: 1fr; }
-    .meta > div { border-right: 0; border-bottom: var(--b) solid var(--ink); text-align: left !important; }
-    .meta > div:last-child { border-bottom: 0; }
+    .tab { border-right: 0; border-bottom: var(--b) solid var(--line); min-height: 56px; }
+    .hero { padding: 28px 16px 32px; }
     .stat { padding: 14px 12px; }
     .seed { grid-template-columns: 56px 1fr; }
     .seed-num { font-size: 22px; }
+    .seed-body { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 14px 12px 16px; }
+    .thumb { width: 48px; height: 48px; }
+    .sides { grid-template-columns: 1fr; }
+    .side + .side { border-left: 0; border-top: var(--b) solid var(--line); }
+    .button-group, .actions { flex-direction: column; }
+    .actions button { width: 100%; min-height: 52px; }
+  }
+
+  /* Text on accent surfaces stays black in both themes */
+  .tab:hover, .tab[aria-current="page"], button:hover, button.primary, button.done, .head-btn.done, .help-btn, .category-btn:hover, .category-btn.active,
+  .meta-end, .hero, .stat:nth-child(2), .stat:nth-child(3), .seed-num, .jin-head, .chip.err, .jin-err, .notice.success, .notice.error, .footer, .sticker,
+  .modal-head, .rule.current, .rule-badge, .unit-selector, .unit-static, .result-big.same, .result-big.different, .side + .side .side-title,
+  .lb-msg, .thumb-n, .drop label, .drop.drag, .cat-fill, .field:focus-within, textarea:focus { color: #000; }
+  .hero-note, .cat-fill p, .rule-formula, .notice .tag, .chip { color: var(--ink); }
+  .chip.err { color: #000; }
+  .thumb:hover { color: var(--ink); }
+  button:disabled:hover { background: var(--card); color: var(--ink); }
+  button.primary:disabled:hover { background: var(--red); color: #000; }
+  .modal-close, .modal-close:hover { color: var(--on-inv); }
+  .modal-close:hover { background: var(--red); color: #000; }
+
+  /* Theme switch */
+  .meta-end { gap: 18px; }
+  .theme-toggle { padding: 0; border: 0; background: transparent; box-shadow: none; gap: 10px; color: #000; font-size: 11px; letter-spacing: .18em; }
+  .theme-toggle:hover { background: transparent; color: #000; }
+  .theme-toggle:active { transform: none; box-shadow: none; }
+  .theme-toggle:focus-visible { outline: 3px solid var(--line); outline-offset: 4px; }
+  .tt-label { display: inline-grid; min-width: 48px; text-align: right; }
+  .tt-label > span { grid-area: 1 / 1; }
+  .tt-label .n, .sun-off, .moon { display: none; }
+  :root[data-theme="dark"] .tt-label .d { display: none; }
+  :root[data-theme="dark"] .tt-label .n { display: inline; }
+  .tt-track { position: relative; display: block; width: 64px; height: 32px; border: 3px solid var(--line); background: var(--card); box-shadow: 3px 3px 0 var(--line); transition: transform var(--snap), box-shadow var(--snap); }
+  .theme-toggle:active .tt-track { transform: translate(3px, 3px); box-shadow: none; }
+  .tt-thumb { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; background: var(--yellow); border: 2px solid var(--line); color: #000; transition: transform .12s ease-out, background .12s ease-out; }
+  .tt-thumb svg { width: 14px; height: 14px; display: block; }
+  :root[data-theme="dark"] .tt-thumb { transform: translateX(32px); background: var(--violet); }
+  .tt-thumb .moon { display: none; }
+  :root[data-theme="dark"] .tt-thumb .sun { display: none; }
+  :root[data-theme="dark"] .tt-thumb .moon { display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: background-color .25s ease-out, color .25s ease-out, border-color .25s ease-out, box-shadow .25s ease-out !important; }
+  }
+  /* ============ TIMER ============ */
+  .view-timer .hero { background-color: var(--red); }
+  .view-timer .panel + .panel { background-image: var(--grid); background-size: 40px 40px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .t-face { padding: 18px 16px 24px; margin-bottom: 20px; text-align: center; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-m); transition: background var(--snap); }
+  .t-face[data-state="running"] { background: var(--yellow); color: #000; }
+  .t-face[data-state="paused"] { background: var(--violet); color: #000; }
+  .t-face[data-state="low"], .t-face[data-state="ringing"], .t-face[data-state="done"] { background: var(--red); color: #000; }
+  .t-face[data-state="ringing"] { animation: tshake .3s steps(2) infinite; }
+  @keyframes tshake { 0% { transform: translate(-3px, 0); } 100% { transform: translate(3px, 0); } }
+  .t-label { display: inline-block; margin-bottom: 10px; padding: 4px 10px; background: var(--inv); color: var(--on-inv); font-size: 11px; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; transform: rotate(-2deg); }
+  .t-digits { font-size: clamp(56px, 11vw, 132px); font-weight: 900; line-height: .9; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+  .t-bar { height: 20px; margin: 0 0 24px; background: var(--card); }
+  .t-bar span { width: 100%; transition: width .25s linear; background: var(--line); }
+  .t-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+  .t-inputs .field input { padding: 12px 6px; font-size: 22px; text-align: center; }
+  .t-inputs .unit-static { min-width: 46px; }
+  .field input:disabled { opacity: .55; cursor: not-allowed; }
+  .t-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+  .t-presets .mini { padding: 8px 12px; font-size: 12px; }
+  .snd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .snd { position: relative; }
+  .snd input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .snd label { display: flex; align-items: center; gap: 10px; min-height: 66px; margin: 0; padding: 12px 58px 12px 14px; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-s); cursor: pointer; font-size: 14px; letter-spacing: .08em; transition: background var(--snap), box-shadow var(--snap); }
+  .snd label:hover { background: var(--yellow); color: #000; }
+  .snd input:checked + label { background: var(--red); color: #000; box-shadow: 8px 8px 0 var(--line); }
+  .snd input:focus-visible + label { outline: 3px solid var(--line); outline-offset: 3px; }
+  .snd-t small { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: none; }
+  .snd .play { position: absolute; top: 15px; right: 12px; z-index: 2; width: 36px; height: 36px; padding: 0; border-width: 3px; box-shadow: 3px 3px 0 var(--line); font-size: 12px; background: var(--card); color: var(--ink); }
+  .snd .play:hover { background: var(--yellow); color: #000; }
+  .vol { display: flex; align-items: center; gap: 14px; margin-top: 24px; padding: 14px 16px; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-s); }
+  .vol label { margin: 0; }
+  .vol output { min-width: 44px; text-align: right; font-size: 13px; }
+  input[type=range] { flex: 1; min-width: 0; height: 26px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+  input[type=range]::-webkit-slider-runnable-track { height: 16px; box-sizing: border-box; border: 3px solid var(--line); background: var(--paper); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 26px; margin-top: -8px; box-sizing: border-box; border: 3px solid var(--line); background: var(--yellow); }
+  input[type=range]::-moz-range-track { height: 10px; border: 3px solid var(--line); background: var(--paper); }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 20px; border: 3px solid var(--line); background: var(--yellow); }
+  input[type=range]:focus-visible { outline: 3px solid var(--line); outline-offset: 3px; }
+  .tab:nth-child(3):not(:last-child) { border-right: var(--b) solid var(--line); }
+  @media (max-width: 980px) {
+    .meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .meta-end { grid-column: 1 / -1; border-top: var(--b) solid var(--line); justify-content: center; }
+    .tab { padding: 16px 14px; font-size: 12px; }
+    .tab:nth-child(3) { border-right: 0; }
+  }
+  @media (max-width: 700px) {
+    .meta { grid-template-columns: 1fr 1fr; }
+    .tab:nth-child(3) { grid-column: 1 / -1; border-top: var(--b) solid var(--line); }
+  }
+  @media (max-width: 520px) {
+    .tab:nth-child(3) { border-top: 0; }
+    .snd-grid { grid-template-columns: 1fr; }
+    .t-inputs { gap: 8px; }
+    .t-inputs > * { min-width: 0; }
+    .t-inputs .unit-static { min-width: 0; padding: 0 7px; font-size: 11px; }
+    .t-inputs .field input { min-width: 0; font-size: 20px; }
   }
 </style>
 </head>
 <body>
 <div class="sheet">
 
-  <div class="meta">
-    <div>Version 01</div>
-    <div> </div>
-    <div>By Paoui</div>
-  </div>
+  <nav class="meta" aria-label="Tools">
+    <button type="button" class="tab" data-view="scanner" aria-current="page"><span class="n">01</span>Item Check</button>
+    <button type="button" class="tab" data-view="calc"><span class="n">02</span>Size Calculator</button>
+    <button type="button" class="tab" data-view="timer"><span class="n">03</span>Timer</button>
+    <div class="meta-end">
+      <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Night mode"><span class="tt-label"><span class="d">Day</span><span class="n">Night</span></span><span class="tt-track"><span class="tt-thumb" aria-hidden="true"><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg></span></span></button>
+      <span class="sticker">V02 &middot; By Paoui</span>
+    </div>
+  </nav>
 
+  <div class="view" id="view-scanner">
   <header class="hero">
-    <h1>Seed<br>Scanner</h1>
+    <h1><span class="ln"><span>Item</span></span><span class="ln"><span>Check</span></span></h1>
     <div class="hero-note">
       <span class="label">(00) Purpose</span>
-      <p class="subtitle">Paste the <code>outer-list</code> response, scan it for seed items, and get the Product Titles and Data IDs you need without digging through the raw JSON.</p>
+      <p class="subtitle">Paste one or more <code>outer-list</code> responses, scan them for seed items, and get the Product Titles and Data IDs you need without digging through the raw JSON.</p>
     </div>
   </header>
 
@@ -183,8 +455,10 @@
         <button class="head-btn" id="exampleBtn"><span class="label">Load example</span></button>
       </div>
       <div class="panel-body">
-        <div class="drop" id="dropZone">Drop a .json or .txt file here, or <label for="fileInput">browse</label><input id="fileInput" type="file" accept=".json,.txt,application/json,text/plain"></div>
-        <textarea id="jsonInput" spellcheck="false" placeholder="Paste the complete outer-list JSON here..."></textarea>
+        <div class="drop" id="dropZone">Drop .json or .txt files here, or <label for="fileInput">browse</label><input id="fileInput" type="file" multiple accept=".json,.txt,application/json,text/plain"></div>
+        <div class="jin-bar"><span id="inputsInfo">1 input</span><button type="button" class="mini" id="collapseAllBtn" hidden>Collapse all</button></div>
+        <div class="jin-list single" id="inputs"></div>
+        <button type="button" class="add-json" id="addInputBtn">+ Paste Another JSON</button>
         <div class="actions">
           <button class="primary" id="scanBtn"><span class="label">Scan Seeds</span><span aria-hidden="true">&rarr;</span></button>
           <button id="clearBtn"><span class="label">Clear</span></button>
@@ -196,6 +470,7 @@
     <section class="panel results">
       <div class="panel-head">
         <div class="panel-title"><span class="idx">02</span>Seed Results</div>
+        <div class="panel-status"><span id="status">Idle</span> <span class="caret">&#9612;</span></div>
         <button class="head-btn" id="copyAllBtn" disabled><span class="label">Copy All</span></button>
       </div>
       <div class="stats">
@@ -219,49 +494,261 @@
   </main>
 
   <footer class="footer">
-    <span>Everything is processed locally in this browser.</span>
-    <span>Nothing is uploaded by this page.</span>
+    <span>Time Wave 8</span>
+    <span>Non-Standard 1</span>
   </footer>
+  </div><!-- /view-scanner -->
+
+  <div class="view view-calc" id="view-calc" hidden>
+  <header class="hero">
+    <h1><span class="ln"><span>Size</span></span><span class="ln"><span>Difference</span></span></h1>
+    <div class="hero-note">
+      <span class="label">(00) Purpose</span>
+      <p class="subtitle">Calculate right item / left item data differences based on product type to determine if they are the same.</p>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- Left: categories + rules -->
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">01</span>Product Categories</div></div>
+      <div class="category-buttons">
+        <button class="category-btn active" data-category="bag" style="--i:0"><span><span class="n">01</span>Bags</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="clothing" style="--i:1"><span><span class="n">02</span>Clothing Fabric Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="metal" style="--i:2"><span><span class="n">03</span>Precious Metal Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="accessory" style="--i:3"><span><span class="n">04</span>Accessory Size</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="belt" style="--i:4"><span><span class="n">05</span>Belts &amp; Ropes</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+      </div>
+
+      <div class="cat-fill"><span class="sticker">Pick a type</span><p>Choose a category, enter both items, hit calculate. Need the thresholds? Smash the <b>?</b> in the calculator header.</p></div>
+    </section>
+
+    <!-- Right: calculator -->
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">03</span>Calculator</div><button type="button" class="help-btn" id="rulesBtn" aria-haspopup="dialog" aria-label="Show calculation rules" title="Calculation rules">?</button></div>
+      <div class="panel-body">
+
+        <!-- Bags -->
+        <div class="input-group active" id="bag-input">
+          <div class="sides">
+            <div class="side">
+              <div class="side-title">&larr; Left item</div>
+              <div class="input-item"><label for="bag-left-length">Length (<span class="u" data-for="bag-left-length">cm</span>)</label><div class="field"><input type="number" id="bag-left-length" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="bag-left-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-left-width">Width (<span class="u" data-for="bag-left-width">cm</span>)</label><div class="field"><input type="number" id="bag-left-width" step="0.1" class="nav-input" data-row="1" data-col="0"><select class="unit-selector" data-target="bag-left-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-left-height">Height (<span class="u" data-for="bag-left-height">cm</span>)</label><div class="field"><input type="number" id="bag-left-height" step="0.1" class="nav-input" data-row="2" data-col="0"><select class="unit-selector" data-target="bag-left-height"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+            <div class="side">
+              <div class="side-title">Right item &rarr;</div>
+              <div class="input-item"><label for="bag-right-length">Length (<span class="u" data-for="bag-right-length">cm</span>)</label><div class="field"><input type="number" id="bag-right-length" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="bag-right-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-right-width">Width (<span class="u" data-for="bag-right-width">cm</span>)</label><div class="field"><input type="number" id="bag-right-width" step="0.1" class="nav-input" data-row="1" data-col="1"><select class="unit-selector" data-target="bag-right-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="bag-right-height">Height (<span class="u" data-for="bag-right-height">cm</span>)</label><div class="field"><input type="number" id="bag-right-height" step="0.1" class="nav-input" data-row="2" data-col="1"><select class="unit-selector" data-target="bag-right-height"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clothing Fabric Weight -->
+        <div class="input-group" id="clothing-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="clothing-left">Weight (g)</label><div class="field"><input type="number" id="clothing-left" step="0.1" class="nav-input" data-row="0" data-col="0"><span class="unit-static">g</span></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="clothing-right">Weight (g)</label><div class="field"><input type="number" id="clothing-right" step="0.1" class="nav-input" data-row="0" data-col="1"><span class="unit-static">g</span></div></div></div>
+          </div>
+        </div>
+
+        <!-- Precious Metal Weight -->
+        <div class="input-group" id="metal-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="metal-left">Weight (g)</label><div class="field"><input type="number" id="metal-left" step="0.1" class="nav-input" data-row="0" data-col="0"><span class="unit-static">g</span></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="metal-right">Weight (g)</label><div class="field"><input type="number" id="metal-right" step="0.1" class="nav-input" data-row="0" data-col="1"><span class="unit-static">g</span></div></div></div>
+          </div>
+        </div>
+
+        <!-- Accessory Size -->
+        <div class="input-group" id="accessory-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="accessory-left">Size (<span class="u" data-for="accessory-left">cm</span>)</label><div class="field"><input type="number" id="accessory-left" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="accessory-left"><option value="cm">cm</option><option value="inch">inch</option></select></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="accessory-right">Size (<span class="u" data-for="accessory-right">cm</span>)</label><div class="field"><input type="number" id="accessory-right" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="accessory-right"><option value="cm">cm</option><option value="inch">inch</option></select></div></div></div>
+          </div>
+        </div>
+
+        <!-- Belts & Ropes -->
+        <div class="input-group" id="belt-input">
+          <div class="sides">
+            <div class="side">
+              <div class="side-title">&larr; Left item</div>
+              <div class="input-item"><label for="belt-left-width">Width (<span class="u" data-for="belt-left-width">cm</span>)</label><div class="field"><input type="number" id="belt-left-width" step="0.1" class="nav-input" data-row="0" data-col="0"><select class="unit-selector" data-target="belt-left-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-left-thickness">Thickness (<span class="u" data-for="belt-left-thickness">cm</span>)</label><div class="field"><input type="number" id="belt-left-thickness" step="0.1" class="nav-input" data-row="1" data-col="0"><select class="unit-selector" data-target="belt-left-thickness"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-left-length">Length (<span class="u" data-for="belt-left-length">cm</span>)</label><div class="field"><input type="number" id="belt-left-length" step="0.1" class="nav-input" data-row="2" data-col="0"><select class="unit-selector" data-target="belt-left-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+            <div class="side">
+              <div class="side-title">Right item &rarr;</div>
+              <div class="input-item"><label for="belt-right-width">Width (<span class="u" data-for="belt-right-width">cm</span>)</label><div class="field"><input type="number" id="belt-right-width" step="0.1" class="nav-input" data-row="0" data-col="1"><select class="unit-selector" data-target="belt-right-width"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-right-thickness">Thickness (<span class="u" data-for="belt-right-thickness">cm</span>)</label><div class="field"><input type="number" id="belt-right-thickness" step="0.1" class="nav-input" data-row="1" data-col="1"><select class="unit-selector" data-target="belt-right-thickness"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+              <div class="input-item"><label for="belt-right-length">Length (<span class="u" data-for="belt-right-length">cm</span>)</label><div class="field"><input type="number" id="belt-right-length" step="0.1" class="nav-input" data-row="2" data-col="1"><select class="unit-selector" data-target="belt-right-length"><option value="cm">cm</option><option value="inch">inch</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="primary" id="calculate"><span>Calculate Difference</span><span aria-hidden="true">&rarr;</span></button>
+          <button id="reset">Reset</button>
+        </div>
+
+        <div class="notice" id="calcNotice"></div>
+
+        <div class="calc-results">
+          <div class="result-item">
+            <div class="result-title"><span>Calculation Result</span><span>A</span></div>
+            <div class="result-big" id="result-text">-</div>
+            <p class="explanation" id="result-explanation">Waiting for calculation...</p>
+          </div>
+          <div class="result-item">
+            <div class="result-title"><span>Calculation Details</span><span>B</span></div>
+            <div id="calculation-details">-</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>All calculations run locally in this browser.</span>
+    <span>Ratio = right item &divide; left item</span>
+  </footer>
+  </div><!-- /view-calc -->
+
+  <div class="view view-timer" id="view-timer" hidden>
+  <header class="hero">
+    <h1><span class="ln"><span>Alarm</span></span><span class="ln"><span>Timer</span></span></h1>
+    <div class="hero-note">
+      <span class="label">(00) Purpose</span>
+      <p class="subtitle">Count down from any time you like, pick an alarm, and keep an eye on the time left right in the browser tab title.</p>
+    </div>
+  </header>
+  <main class="grid">
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">01</span>Countdown</div><div class="panel-status"><span id="tStatus">Ready</span> <span class="caret">&#9612;</span></div></div>
+      <div class="panel-body">
+        <div class="t-face" id="tFace" data-state="idle"><span class="t-label" id="tLabel">Ready</span><div class="t-digits" id="tDigits" role="timer" aria-live="off">01:20</div></div>
+        <div class="bar t-bar"><span id="tBar"></span></div>
+        <div class="t-inputs">
+          <div class="input-item"><label for="tH">Hours</label><div class="field"><input type="number" id="tH" min="0" max="99" inputmode="numeric"><span class="unit-static">hr</span></div></div>
+          <div class="input-item"><label for="tM">Minutes</label><div class="field"><input type="number" id="tM" min="0" max="999" inputmode="numeric"><span class="unit-static">min</span></div></div>
+          <div class="input-item"><label for="tS">Seconds</label><div class="field"><input type="number" id="tS" min="0" max="999" inputmode="numeric"><span class="unit-static">sec</span></div></div>
+        </div>
+        <div class="t-presets"><span>Quick set</span>
+          <button type="button" class="mini" data-preset="30">0:30</button><button type="button" class="mini" data-preset="60">1:00</button><button type="button" class="mini" data-preset="80">1:20</button>
+        </div>
+        <div class="button-group">
+          <button type="button" class="primary" id="tStart"><span id="tStartLbl">Start</span><span aria-hidden="true" id="tStartIcon">&#9654;</span></button>
+          <button type="button" class="primary" id="tStopAlarm" hidden>Stop Alarm &#9632;</button>
+          <button type="button" id="tReset">Reset</button>
+        </div>
+        <div class="sr" id="tLive" aria-live="assertive"></div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="idx">02</span>Alarm Sound</div></div>
+      <div class="panel-body">
+        <div class="snd-grid" role="radiogroup" aria-label="Alarm sound"><div class="snd"><input type="radio" name="alarm" id="snd-digital" value="digital"><label for="snd-digital"><span class="snd-n">01</span><span class="snd-t">Digital<small>Triple beep</small></span></label><button type="button" class="play" data-play="digital" aria-label="Preview Digital">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-chime" value="chime"><label for="snd-chime"><span class="snd-n">02</span><span class="snd-t">Chime<small>Falling bells</small></span></label><button type="button" class="play" data-play="chime" aria-label="Preview Chime">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-bell" value="bell"><label for="snd-bell"><span class="snd-n">03</span><span class="snd-t">Bell<small>Deep strike</small></span></label><button type="button" class="play" data-play="bell" aria-label="Preview Bell">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-kalimba" value="kalimba"><label for="snd-kalimba"><span class="snd-n">04</span><span class="snd-t">Kalimba<small>Soft plucks</small></span></label><button type="button" class="play" data-play="kalimba" aria-label="Preview Kalimba">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-arcade" value="arcade"><label for="snd-arcade"><span class="snd-n">05</span><span class="snd-t">Arcade<small>Coin arpeggio</small></span></label><button type="button" class="play" data-play="arcade" aria-label="Preview Arcade">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-marimba" value="marimba"><label for="snd-marimba"><span class="snd-n">06</span><span class="snd-t">Marimba<small>Wooden run</small></span></label><button type="button" class="play" data-play="marimba" aria-label="Preview Marimba">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-horn" value="horn"><label for="snd-horn"><span class="snd-n">07</span><span class="snd-t">Air Horn<small>Loud chord</small></span></label><button type="button" class="play" data-play="horn" aria-label="Preview Air Horn">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-gentle" value="gentle"><label for="snd-gentle"><span class="snd-n">08</span><span class="snd-t">Gentle<small>Soft pulses</small></span></label><button type="button" class="play" data-play="gentle" aria-label="Preview Gentle">&#9654;</button></div></div>
+        <div class="vol"><label for="tVol">Volume</label><input type="range" id="tVol" min="0" max="100" value="70"><output id="tVolOut" for="tVol">70%</output></div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><span>Alarms are synthesized locally. No files, no uploads.</span><span>Keep this page open for the alarm to ring.</span></footer>
+  </div><!-- /view-timer -->
+
 </div>
 
+<dialog class="rules-modal" id="rulesModal" aria-labelledby="rulesTitle">
+  <div class="modal-head"><h2 class="modal-title" id="rulesTitle">Calculation Rules</h2><button type="button" class="modal-close" id="rulesClose" aria-label="Close rules">&#10005;</button></div>
+  <div class="modal-body">
+        <div class="rule" data-rule="bag">
+          <div class="rule-title"><span class="n">01</span>Bags<span class="rule-badge">Selected</span></div>
+          <p class="rule-formula">0.8 &lt; Right Volume / Left Volume &lt; 1.2 &rarr; Same</p>
+          <p class="conversion-note">Supports automatic inch conversion (1 inch = 2.54 cm)</p>
+        </div>
+        <div class="rule" data-rule="clothing">
+          <div class="rule-title"><span class="n">02</span>Clothing Fabric Weight<span class="rule-badge">Selected</span></div>
+          <div class="rule-condition">Left &le; 200g: Right &ge; Left &times; 0.95 &rarr; Same</div>
+          <div class="rule-condition">Left &gt; 200g: Right &ge; Left &minus; 10 &rarr; Same</div>
+          <div class="rule-condition">Right &gt; Left &rarr; Directly Same</div>
+        </div>
+        <div class="rule" data-rule="metal">
+          <div class="rule-title"><span class="n">03</span>Precious Metal Weight<span class="rule-badge">Selected</span></div>
+          <p class="rule-formula">0.9 &lt; Right / Left &lt; 1.1 &rarr; Same</p>
+        </div>
+        <div class="rule" data-rule="accessory">
+          <div class="rule-title"><span class="n">04</span>Accessory Size<span class="rule-badge">Selected</span></div>
+          <p class="rule-formula">0.9 &lt; Right / Left &lt; 1.1 &rarr; Same</p>
+        </div>
+        <div class="rule" data-rule="belt">
+          <div class="rule-title"><span class="n">05</span>Belts &amp; Ropes<span class="rule-badge">Selected</span></div>
+          <div class="rule-condition">Width: 0.9 &lt; Right / Left &lt; 1.1</div>
+          <div class="rule-condition">Thickness: 0.9 &lt; Right / Left &lt; 1.1</div>
+          <div class="rule-condition">Length: difference &lt; 30cm and 0.8 &lt; Right / Left &lt; 1.2 &rarr; Same</div>
+          <p class="conversion-note">Supports automatic inch conversion (1 inch = 2.54 cm)</p>
+        </div>
+  </div>
+</dialog>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Product image viewer" hidden>
+  <div class="lb-frame">
+    <div class="lb-head">
+      <div class="lb-title" id="lbTitle"></div>
+      <button type="button" class="head-btn" id="lbClose" aria-label="Close viewer">Close &#10005;</button>
+    </div>
+    <div class="lb-stage" id="lbStage">
+      <img class="lb-img" id="lbImg" alt="" draggable="false" referrerpolicy="no-referrer">
+      <div class="lb-msg" id="lbMsg" hidden></div>
+    </div>
+    <div class="lb-bar">
+      <button type="button" class="mini" id="lbPrev" aria-label="Previous image">&larr; Prev</button>
+      <span id="lbCount"></span>
+      <button type="button" class="mini" id="lbNext" aria-label="Next image">Next &rarr;</button>
+      <span class="grow"></span>
+      <button type="button" class="mini" id="lbOut" aria-label="Zoom out">&minus;</button>
+      <span id="lbZoom">100%</span>
+      <button type="button" class="mini" id="lbIn" aria-label="Zoom in">+</button>
+      <button type="button" class="mini" id="lbReset">Reset</button>
+    </div>
+  </div>
+</div>
 <script>
 (() => {
-  const input = document.getElementById('jsonInput');
-  const scanBtn = document.getElementById('scanBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const copyAllBtn = document.getElementById('copyAllBtn');
-  const exampleBtn = document.getElementById('exampleBtn');
-  const fileInput = document.getElementById('fileInput');
-  const dropZone = document.getElementById('dropZone');
-  const notice = document.getElementById('notice');
-  const productCount = document.getElementById('productCount');
-  const seedCount = document.getElementById('seedCount');
-  const seedRate = document.getElementById('seedRate');
-  const rateBar = document.getElementById('rateBar');
-  const emptyState = document.getElementById('emptyState');
-  const seedList = document.getElementById('seedList');
+  const $ = id => document.getElementById(id);
+  const inputsEl = $('inputs'), addBtn = $('addInputBtn'), collapseAllBtn = $('collapseAllBtn'), inputsInfo = $('inputsInfo');
+  const scanBtn = $('scanBtn'), clearBtn = $('clearBtn'), copyAllBtn = $('copyAllBtn'), exampleBtn = $('exampleBtn');
+  const fileInput = $('fileInput'), dropZone = $('dropZone'), notice = $('notice');
+  const productCount = $('productCount'), seedCount = $('seedCount'), seedRate = $('seedRate'), rateBar = $('rateBar');
+  const emptyState = $('emptyState'), seedList = $('seedList'), status = $('status');
+  const resultsPanel = document.querySelector('.results');
 
-  let seeds = [];
+  let seeds = [], busy = false, lastStatus = 'Idle', fieldSeq = 0;
+  const pad = n => String(n).padStart(2, '0');
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
 
+  // ---------- example ----------
+  const svg = (t, bg) => 'data:image/svg+xml,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><rect width="60" height="60" fill="${bg}"/><text x="30" y="38" font-size="22" font-family="monospace" font-weight="700" text-anchor="middle" fill="#fff">${t}</text></svg>`);
   const example = {
     result: {
       dataList: [
         { dataId: 8873283001, dataType: 1, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Product A' } } },
-        { dataId: 8873283010, dataType: 2, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Juste un Clou Bracelet 18K Rose Gold Small' } } },
-        { dataId: 8873283020, dataType: 1, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Product C' } } }
+        { dataId: 8873283010, dataType: 2, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Juste un Clou Bracelet 18K Rose Gold Small', imageUrls: ['https://invalid.invalid/missing.jpg', svg('JC1', '#222'), svg('JC2', '#777')] } } },
+        { dataId: 8873283020, dataType: 1, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Product C' } } },
+        { dataId: 8873283030, dataType: 2, badCaseGoodsPairDTO: { goodsInfo: { goodsTitle: 'Example Seed D (no images)' } } }
       ]
     }
   };
 
+  // ---------- notices / empty ----------
   function setEmpty(kind) {
     const none = kind === 'none';
     emptyState.hidden = false;
     emptyState.innerHTML = `
       <div class="empty-big">00</div>
       <strong>${none ? 'No seeds found' : 'No scan yet'}</strong>
-      <div class="empty-sub">${none ? 'No items with <code>dataType: 2</code> were found in this response.' : 'Your extracted seeds will appear here.'}</div>`;
+      <div class="empty-sub">${none ? 'No items with <code>dataType: 2</code> were found in the pasted responses.' : 'Your extracted seeds will appear here.'}</div>`;
   }
-
   function showNotice(message, type = 'error') {
     notice.className = 'notice ' + type;
     notice.innerHTML = `<b class="tag">${type === 'success' ? 'OK' : 'ERR'}</b>`;
@@ -271,22 +758,167 @@
   }
   function clearNotice() { notice.textContent = ''; notice.className = 'notice'; }
 
+  // ---------- JSON input fields ----------
+  const fieldEls = () => [...inputsEl.querySelectorAll('.jin')];
+  const taOf = el => el.querySelector('textarea');
+
+  function addField(text = '') {
+    const el = document.createElement('div');
+    el.className = 'jin';
+    el.dataset.uid = ++fieldSeq;
+    el.innerHTML = `
+      <div class="jin-head">
+        <div class="name"><span class="idx"></span><span>JSON</span><span class="chip" hidden></span></div>
+        <button type="button" class="mini" data-act="collapse" aria-expanded="true" title="Collapse">&minus;</button>
+        <button type="button" class="mini" data-act="clear" title="Clear this input">Clear</button>
+        <button type="button" class="mini" data-act="remove" title="Remove this input" aria-label="Remove this input">&#10005;</button>
+      </div>
+      <textarea spellcheck="false" placeholder="Paste the complete outer-list JSON here..."></textarea>
+      <div class="jin-err" role="alert" hidden></div>`;
+    taOf(el).value = text;
+    inputsEl.appendChild(el);
+    refreshFields();
+    return el;
+  }
+
+  function setFieldState(el, kind, msg) {
+    const chip = el.querySelector('.chip'), err = el.querySelector('.jin-err');
+    chip.className = 'chip'; chip.textContent = ''; chip.hidden = !kind;
+    err.hidden = true; err.textContent = '';
+    if (kind === 'ok') { chip.textContent = '\u2713 ' + msg; }
+    if (kind === 'err') { chip.classList.add('err'); chip.textContent = 'Error'; err.hidden = false; err.textContent = msg; }
+  }
+
+  function refreshFields() {
+    const els = fieldEls(), n = els.length;
+    inputsEl.classList.toggle('single', n === 1);
+    els.forEach((el, i) => {
+      el.querySelector('.idx').textContent = '#' + pad(i + 1);
+      taOf(el).setAttribute('aria-label', 'JSON response body ' + (i + 1));
+      el.querySelector('[data-act="remove"]').disabled = n === 1;
+    });
+    const filled = els.filter(el => taOf(el).value.trim()).length;
+    inputsInfo.textContent = n === 1 ? '1 input' : `${n} inputs \u00b7 ${filled} filled`;
+    collapseAllBtn.hidden = n < 2;
+    collapseAllBtn.textContent = els.every(e => e.classList.contains('collapsed')) ? 'Expand all' : 'Collapse all';
+    clearBtn.querySelector('.label').textContent = n > 1 ? 'Clear All' : 'Clear';
+  }
+
+  function setCollapsed(el, c) {
+    el.classList.toggle('collapsed', c);
+    const b = el.querySelector('[data-act="collapse"]');
+    b.innerHTML = c ? '+' : '&minus;';
+    b.setAttribute('aria-expanded', String(!c));
+    b.title = c ? 'Expand' : 'Collapse';
+  }
+
+  inputsEl.addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]');
+    if (!b || busy) return;
+    const el = b.closest('.jin'), act = b.dataset.act;
+    if (act === 'collapse') { setCollapsed(el, !el.classList.contains('collapsed')); refreshFields(); }
+    else if (act === 'clear') { taOf(el).value = ''; setFieldState(el, null); refreshFields(); taOf(el).focus(); }
+    else if (act === 'remove' && fieldEls().length > 1) { el.remove(); refreshFields(); }
+  });
+  inputsEl.addEventListener('input', e => {
+    if (e.target.tagName !== 'TEXTAREA') return;
+    setFieldState(e.target.closest('.jin'), null);
+    refreshFields();
+  });
+  addBtn.addEventListener('click', () => {
+    if (busy) return;
+    const el = addField();
+    taOf(el).focus();
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+  collapseAllBtn.addEventListener('click', () => {
+    const els = fieldEls();
+    const collapse = !els.every(e => e.classList.contains('collapsed'));
+    els.forEach(el => setCollapsed(el, collapse));
+    refreshFields();
+  });
+
+  // ---------- extraction ----------
+  const IMG_KEY = /(img|image|pic|photo|thumb)/i;
+  const IMG_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|svg)(\?|#|$)/i;
+  function normUrl(s) {
+    s = s.trim();
+    if (s.startsWith('//')) return 'https:' + s;
+    return /^(https?:\/\/|data:image\/)/i.test(s) ? s : null;
+  }
+  // Walk an object and gather image URLs (keys that look like image fields, or URLs that end in an image extension)
+  function collectImages(root) {
+    const out = new Set();
+    const walk = (node, hit, depth) => {
+      if (depth > 7 || out.size >= 24 || node == null) return;
+      if (typeof node === 'string') {
+        const u = normUrl(node);
+        if (u && (hit || u.startsWith('data:') || IMG_EXT.test(u))) out.add(u);
+      } else if (Array.isArray(node)) {
+        node.forEach(n => walk(n, hit, depth + 1));
+      } else if (typeof node === 'object') {
+        for (const [k, v] of Object.entries(node)) walk(v, hit || IMG_KEY.test(k), depth + 1);
+      }
+    };
+    walk(root, false, 0);
+    return [...out];
+  }
+
   function extract(data) {
     const items = data?.result?.dataList;
     if (!Array.isArray(items)) throw new Error('Could not find result.dataList in this JSON. Make sure you pasted the outer-list response.');
-    const found = items.filter(item => item?.dataType === 2).map(item => ({
-      dataId: item?.dataId ?? '—',
-      productTitle: item?.badCaseGoodsPairDTO?.goodsInfo?.goodsTitle ?? '(No product title found)'
-    }));
+    const found = items.filter(item => item?.dataType === 2).map(item => {
+      const dto = item?.badCaseGoodsPairDTO;
+      let images = collectImages(dto?.goodsInfo);
+      if (!images.length) images = collectImages(dto);
+      return {
+        dataId: item?.dataId ?? '\u2014',
+        productTitle: dto?.goodsInfo?.goodsTitle ?? '(No product title found)',
+        images
+      };
+    });
     return { total: items.length, found };
   }
 
-  function render(total, found) {
+  const friendly = err => err instanceof SyntaxError
+    ? `Invalid JSON \u2014 ${err.message}. Check the response was copied in full (no missing brackets or extra text before/after).`
+    : (err instanceof Error ? err.message : 'Unable to read this JSON.');
+
+  // ---------- render ----------
+  function countTo(el, to, decimals = 0, suffix = '') {
+    const fmt = v => (decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || to === 0) { el.textContent = fmt(to); return; }
+    const start = performance.now(), dur = 900;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / dur);
+      el.textContent = fmt(to * (1 - Math.pow(1 - t, 4)));
+      if (t < 1) requestAnimationFrame(tick); else el.textContent = fmt(to);
+    };
+    requestAnimationFrame(tick);
+  }
+  resultsPanel.addEventListener('animationend', e => { if (e.animationName === 'scan') resultsPanel.classList.remove('scanning'); });
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  function thumbHtml(seed, i) {
+    if (!seed.images.length) return '<div class="thumb none" aria-hidden="true">No img</div>';
+    const n = seed.images.length;
+    return `<button type="button" class="thumb" data-zoom="${i}" aria-label="View ${plural(n, 'image')} for ${escapeHtml(seed.productTitle)}">
+      <img src="${escapeHtml(seed.images[0])}" alt="" width="64" height="64" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      ${n > 1 ? `<span class="thumb-n">+${n - 1}</span>` : ''}</button>`;
+  }
+
+  function render(total, found, multi) {
     seeds = found;
     const rate = total ? (found.length / total) * 100 : 0;
-    productCount.textContent = total.toLocaleString();
-    seedCount.textContent = found.length.toLocaleString();
-    seedRate.textContent = total ? rate.toFixed(1) + '%' : '0%';
+    countTo(productCount, total);
+    countTo(seedCount, found.length);
+    countTo(seedRate, rate, 1, '%');
+    lastStatus = plural(found.length, 'seed');
+    status.textContent = lastStatus;
+    resultsPanel.classList.remove('scanning'); void resultsPanel.offsetWidth; resultsPanel.classList.add('scanning');
     rateBar.style.width = Math.min(rate, 100) + '%';
     copyAllBtn.disabled = found.length === 0;
 
@@ -300,15 +932,18 @@
     emptyState.hidden = true;
     seedList.hidden = false;
     seedList.innerHTML = found.map((seed, i) => `
-      <article class="seed" style="--i:${i}">
-        <div class="seed-num">${String(i + 1).padStart(2, '0')}</div>
+      <article class="seed" style="--i:${Math.min(i, 12)}">
+        <div class="seed-num">${pad(i + 1)}</div>
         <div class="seed-body">
-          <div class="seed-tag">Seed item</div>
-          <div class="title">${escapeHtml(seed.productTitle)}</div>
-          <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
-          <div class="seed-actions">
-            <button data-copy-title="${i}"><span class="label">Copy Title</span></button>
-            <button data-copy-id="${i}"><span class="label">Copy ID</span></button>
+          ${thumbHtml(seed, i)}
+          <div class="seed-main">
+            <div class="seed-tag">Seed item${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}</div>
+            <div class="title">${escapeHtml(seed.productTitle)}</div>
+            <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
+            <div class="seed-actions">
+              <button data-copy-title="${i}"><span class="label">Copy Title</span></button>
+              <button data-copy-id="${i}"><span class="label">Copy ID</span></button>
+            </div>
           </div>
         </div>
       </article>
@@ -318,9 +953,30 @@
     seedList.querySelectorAll('[data-copy-id]').forEach(btn => btn.addEventListener('click', () => copyText(String(seeds[btn.dataset.copyId].dataId), btn)));
   }
 
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  }
+  // Broken thumbnails: try the next image, otherwise fall back to a placeholder (error events don't bubble, so capture)
+  seedList.addEventListener('error', e => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement)) return;
+    const btn = img.closest('.thumb');
+    const s = btn && seeds[btn.dataset.zoom];
+    if (!s) return;
+    s.bad.add(img.getAttribute('src'));
+    const good = s.images.filter(u => !s.bad.has(u));
+    if (good.length) {
+      img.src = good[0];
+      const badge = btn.querySelector('.thumb-n');
+      if (badge) { if (good.length > 1) badge.textContent = '+' + (good.length - 1); else badge.remove(); }
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'thumb none'; ph.setAttribute('aria-hidden', 'true'); ph.textContent = 'No img';
+      btn.replaceWith(ph);
+    }
+  }, true);
+
+  seedList.addEventListener('click', e => {
+    const btn = e.target.closest('[data-zoom]');
+    if (btn) openViewer(seeds[btn.dataset.zoom], btn);
+  });
 
   async function copyText(text, button) {
     try {
@@ -335,25 +991,73 @@
     }
   }
 
-  scanBtn.addEventListener('click', () => {
+  // ---------- batch scan ----------
+  const tick = () => new Promise(r => setTimeout(r, 0));
+  function setBusy(on) {
+    busy = on;
+    scanBtn.disabled = clearBtn.disabled = addBtn.disabled = exampleBtn.disabled = collapseAllBtn.disabled = on;
+    scanBtn.querySelector('.label').textContent = on ? 'Scanning\u2026' : 'Scan Seeds';
+    inputsEl.classList.toggle('busy', on);
+    inputsEl.querySelectorAll('textarea').forEach(t => { t.readOnly = on; });
+    resultsPanel.setAttribute('aria-busy', String(on));
+  }
+
+  async function runBatch() {
+    if (busy) return;
     clearNotice();
-    const raw = input.value.trim();
-    if (!raw) { showNotice('Paste the outer-list JSON first.'); return; }
-    try {
-      const data = JSON.parse(raw);
-      const result = extract(data);
-      render(result.total, result.found);
-      showNotice(`Scan complete — ${result.found.length} seed${result.found.length === 1 ? '' : 's'} found.`, 'success');
-    } catch (err) {
-      showNotice(err instanceof Error ? err.message : 'Unable to read this JSON.');
+    const jobs = fieldEls().map((el, i) => ({ el, n: i + 1, raw: taOf(el).value.trim() }));
+    jobs.forEach(j => setFieldState(j.el, null));
+    const active = jobs.filter(j => j.raw);
+    const skipped = jobs.length - active.length;
+    if (!active.length) {
+      showNotice(jobs.length > 1 ? 'All JSON boxes are empty. Paste at least one response body, then scan.' : 'Paste the outer-list JSON first.');
+      return;
     }
-  });
+
+    setBusy(true);
+    let total = 0, ok = 0;
+    const all = [], failed = [];
+    try {
+      for (let k = 0; k < active.length; k++) {
+        const j = active[k];
+        status.textContent = `Scanning ${k + 1}/${active.length}`;
+        await tick();
+        try {
+          const r = extract(JSON.parse(j.raw));   // each input is parsed on its own
+          r.found.forEach(s => all.push({ ...s, src: j.n, bad: new Set() }));
+          total += r.total; ok++;
+          setFieldState(j.el, 'ok', plural(r.found.length, 'seed'));
+        } catch (err) {
+          failed.push(j.n);
+          setFieldState(j.el, 'err', friendly(err));
+        }
+      }
+    } finally {
+      setBusy(false);
+      status.textContent = lastStatus;
+    }
+
+    const names = failed.map(n => '#' + pad(n)).join(', ');
+    if (!ok) {
+      showNotice(`Nothing could be read \u2014 ${plural(failed.length, 'input')} failed (${names}). See the error under each box.`);
+      return;
+    }
+    render(total, all, active.length > 1);
+    const where = active.length > 1 ? ` across ${plural(ok, 'input')}` : '';
+    const skip = skipped ? ` ${plural(skipped, 'empty box').replace('boxs', 'boxes')} ignored.` : '';
+    if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(all.length, 'seed')} kept. Failed: ${names}. See the error under each box.${skip}`, 'error');
+    else showNotice(`Scan complete \u2014 ${plural(all.length, 'seed')} found${where}.${skip}`, 'success');
+  }
+  scanBtn.addEventListener('click', runBatch);
 
   clearBtn.addEventListener('click', () => {
-    input.value = '';
+    if (busy) return;
+    inputsEl.innerHTML = '';
+    addField();
     seeds = [];
-    productCount.textContent = '—'; seedCount.textContent = '—'; seedRate.textContent = '—';
+    productCount.textContent = '\u2014'; seedCount.textContent = '\u2014'; seedRate.textContent = '\u2014';
     rateBar.style.width = '0';
+    lastStatus = 'Idle'; status.textContent = lastStatus;
     copyAllBtn.disabled = true;
     seedList.hidden = true; seedList.innerHTML = '';
     setEmpty('idle');
@@ -366,28 +1070,541 @@
   });
 
   exampleBtn.addEventListener('click', () => {
-    input.value = JSON.stringify(example, null, 2);
+    if (busy) return;
+    inputsEl.innerHTML = '';
+    addField(JSON.stringify(example, null, 2));
     clearNotice();
-    scanBtn.click();
+    runBatch();
   });
 
+  // ---------- files ----------
+  async function loadFiles(files) {
+    for (const f of files) {
+      const text = await f.text();
+      const empty = fieldEls().find(el => !taOf(el).value.trim());
+      const el = empty || addField();
+      taOf(el).value = text;
+      setFieldState(el, null);
+    }
+    refreshFields();
+    clearNotice();
+  }
   fileInput.addEventListener('change', async e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    input.value = await file.text();
-    clearNotice();
+    if (e.target.files?.length && !busy) await loadFiles([...e.target.files]);
+    fileInput.value = '';
   });
-
-  ['dragenter','dragover'].forEach(event => dropZone.addEventListener(event, e => { e.preventDefault(); dropZone.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(event => dropZone.addEventListener(event, e => { e.preventDefault(); dropZone.classList.remove('drag'); }));
+  ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag'); }));
   dropZone.addEventListener('drop', async e => {
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    input.value = await file.text();
-    clearNotice();
+    if (e.dataTransfer.files?.length && !busy) await loadFiles([...e.dataTransfer.files]);
   });
 
+  // ---------- image viewer ----------
+  const lb = $('lb'), lbImg = $('lbImg'), lbStage = $('lbStage'), lbMsg = $('lbMsg'), lbTitle = $('lbTitle');
+  const lbCount = $('lbCount'), lbZoom = $('lbZoom'), lbPrev = $('lbPrev'), lbNext = $('lbNext');
+  const vw = { seed: null, list: [], idx: 0, z: 1, x: 0, y: 0, trigger: null, token: 0 };
+
+  function applyT() {
+    lbImg.style.transform = `translate(${vw.x}px, ${vw.y}px) scale(${vw.z})`;
+    lbZoom.textContent = Math.round(vw.z * 100) + '%';
+    lbStage.classList.toggle('zoomed', vw.z > 1);
+  }
+  function setZoom(z) {
+    vw.z = Math.min(6, Math.max(1, z));
+    if (vw.z === 1) { vw.x = 0; vw.y = 0; }
+    else {
+      const bx = lbStage.clientWidth * vw.z / 2, by = lbStage.clientHeight * vw.z / 2;
+      vw.x = Math.max(-bx, Math.min(bx, vw.x)); vw.y = Math.max(-by, Math.min(by, vw.y));
+    }
+    applyT();
+  }
+  function showImage() {
+    const url = vw.list[vw.idx], my = ++vw.token;
+    vw.z = 1; vw.x = 0; vw.y = 0; applyT();
+    lbMsg.hidden = false; lbMsg.textContent = 'Loading\u2026';
+    lbImg.style.visibility = 'hidden';
+    lbImg.onload = () => { if (vw.token === my) { lbMsg.hidden = true; lbImg.style.visibility = 'visible'; } };
+    lbImg.onerror = () => { if (vw.token === my) { vw.seed.bad.add(url); lbMsg.hidden = false; lbMsg.textContent = 'Image unavailable'; } };
+    lbImg.src = url;
+    lbCount.textContent = `${vw.idx + 1} / ${vw.list.length}`;
+    lbPrev.disabled = lbNext.disabled = vw.list.length < 2;
+  }
+  function step(d) { if (vw.list.length > 1) { vw.idx = (vw.idx + d + vw.list.length) % vw.list.length; showImage(); } }
+
+  function openViewer(seed, trigger) {
+    if (!seed) return;
+    vw.seed = seed; vw.trigger = trigger;
+    vw.list = seed.images.filter(u => !seed.bad.has(u));
+    if (!vw.list.length) return;
+    vw.idx = 0;
+    lbTitle.textContent = seed.productTitle;
+    lb.hidden = false;
+    showImage();
+    $('lbClose').focus();
+  }
+  function closeViewer() {
+    lb.hidden = true;
+    vw.token++;
+    lbImg.removeAttribute('src');
+    if (vw.trigger && vw.trigger.isConnected) vw.trigger.focus({ preventScroll: true });
+  }
+
+  $('lbClose').addEventListener('click', closeViewer);
+  lb.addEventListener('click', e => { if (e.target === lb) closeViewer(); });
+  lbPrev.addEventListener('click', () => step(-1));
+  lbNext.addEventListener('click', () => step(1));
+  $('lbIn').addEventListener('click', () => setZoom(vw.z * 1.5));
+  $('lbOut').addEventListener('click', () => setZoom(vw.z / 1.5));
+  $('lbReset').addEventListener('click', () => setZoom(1));
+  lbStage.addEventListener('dblclick', () => setZoom(vw.z > 1 ? 1 : 2.5));
+  lb.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (lbStage.contains(e.target)) setZoom(vw.z * (e.deltaY < 0 ? 1.2 : 1 / 1.2));
+  }, { passive: false });
+
+  // drag to pan, pinch to zoom
+  const ptrs = new Map(); let drag = null, pinch0 = 0, pinchZ = 1;
+  const pdist = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
+  lbStage.addEventListener('pointerdown', e => {
+    lbStage.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 2) { pinch0 = pdist(); pinchZ = vw.z; drag = null; }
+    else if (vw.z > 1) { drag = { x: e.clientX - vw.x, y: e.clientY - vw.y }; lbStage.classList.add('dragging'); }
+  });
+  lbStage.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 2 && pinch0) setZoom(pinchZ * pdist() / pinch0);
+    else if (drag) { vw.x = e.clientX - drag.x; vw.y = e.clientY - drag.y; setZoom(vw.z); }
+  });
+  const endPtr = e => {
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch0 = 0;
+    if (!ptrs.size) { drag = null; lbStage.classList.remove('dragging'); }
+  };
+  lbStage.addEventListener('pointerup', endPtr);
+  lbStage.addEventListener('pointercancel', endPtr);
+
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
+    else if (e.key === 'ArrowLeft') step(-1);
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === '+' || e.key === '=') setZoom(vw.z * 1.5);
+    else if (e.key === '-') setZoom(vw.z / 1.5);
+    else if (e.key === '0') setZoom(1);
+    else if (e.key === 'Tab') {   // keep focus inside the viewer
+      const f = [...lb.querySelectorAll('button:not(:disabled)')];
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  addField();
   setEmpty('idle');
+})();
+</script>
+<script>
+(() => {
+
+  const $$ = sel => document.querySelectorAll(sel);
+  const $  = sel => document.querySelector(sel);
+
+  // ----- feedback helpers (same patterns as the scanner) -----
+  const calcResults = $('.calc-results');
+  const calcNotice = $('#calcNotice');
+  function showCalcNotice(message) {
+    calcNotice.className = 'notice error';
+    calcNotice.innerHTML = '<b class="tag">ERR</b>';
+    const span = document.createElement('span');
+    span.textContent = message;
+    calcNotice.appendChild(span);
+  }
+  function clearCalcNotice() { calcNotice.textContent = ''; calcNotice.className = 'notice'; }
+  function restart(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function playResult() {
+    restart(calcResults, 'scanning');
+    restart($('#result-text'), 'reveal');
+    restart($('#result-explanation'), 'reveal');
+    restart($('#calculation-details'), 'reveal');
+  }
+  calcResults.addEventListener('animationend', e => { if (e.animationName === 'scan') calcResults.classList.remove('scanning'); });
+
+  // Reads an input and always returns centimetres when the field has a unit selector
+  const getVal = sel => {
+    const el = $(sel);
+    let v = parseFloat(el.value) || 0;
+    const unit = document.querySelector(`.unit-selector[data-target="${el.id}"]`);
+    if (unit && unit.value === 'inch') v *= 2.54;
+    return v;
+  };
+
+  // Unit conversion: keeps the physical size the same when the unit is switched
+  $$('.unit-selector').forEach(sel =>
+    sel.addEventListener('change', e => {
+      const id = e.target.dataset.target;
+      const inp = $(`#${id}`);
+      const v = parseFloat(inp.value);
+      if (!isNaN(v))
+        inp.value = (e.target.value === 'inch' ? v / 2.54 : v * 2.54).toFixed(2);
+      const label = $(`.u[data-for="${id}"]`);
+      if (label) label.textContent = e.target.value;
+    })
+  );
+
+  // Switch categories
+  $$('.category-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      $$('.category-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.input-group').forEach(g => g.classList.remove('active'));
+      $(`#${btn.dataset.category}-input`).classList.add('active');
+      reset();
+    })
+  );
+
+  function reset() {
+    clearCalcNotice();
+    $$('input[type=number]').forEach(i => i.value = '');
+    $('#result-text').textContent = '-';
+    $('#result-text').className = 'result-big';
+    $('#result-explanation').textContent = 'Waiting for calculation...';
+    $('#calculation-details').textContent = '-';
+  }
+
+  $('#reset').addEventListener('click', reset);
+
+  $('#calculate').addEventListener('click', () => {
+    clearCalcNotice();
+    const cat = $('.category-btn.active').dataset.category;
+    let ok = false, detail = '';
+    const n = x => +x.toFixed(2);
+
+    switch (cat) {
+      case 'bag': {
+        const ll = getVal('#bag-left-length'), lw = getVal('#bag-left-width'), lh = getVal('#bag-left-height');
+        const rl = getVal('#bag-right-length'), rw = getVal('#bag-right-width'), rh = getVal('#bag-right-height');
+        if (!(ll && lw && lh && rl && rw && rh)) return showCalcNotice('Please enter all values.');
+        const lv = ll * lw * lh, rv = rl * rw * rh, r = rv / lv;
+        detail = `Left item volume=${lv.toFixed(2)} cm³, Right item volume=${rv.toFixed(2)} cm³, Ratio=${r.toFixed(3)}`;
+        ok = r > 0.8 && r < 1.2;
+        break;
+      }
+      case 'clothing': {
+        const l = getVal('#clothing-left'), r = getVal('#clothing-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        detail = `Left item=${l.toFixed(1)} g, Right item=${r.toFixed(1)} g`;
+        if (r > l) { ok = true; detail += ' → Right item>Left item, directly same'; }
+        else if (l <= 200) { ok = r >= l * 0.95; detail += ` → Need Right item≥${(l * 0.95).toFixed(1)} g`; }
+        else { ok = r >= l - 10; detail += ` → Need Right item≥${(l - 10).toFixed(1)} g`; }
+        break;
+      }
+      case 'metal': {
+        const l = getVal('#metal-left'), r = getVal('#metal-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        const ratio = r / l;
+        detail = `Left item=${l} g, Right item=${r} g, Ratio=${ratio.toFixed(3)}`;
+        ok = ratio > 0.9 && ratio < 1.1;
+        break;
+      }
+      case 'accessory': {
+        const l = getVal('#accessory-left'), r = getVal('#accessory-right');
+        if (!(l && r)) return showCalcNotice('Please enter all values.');
+        const ratio = r / l;
+        detail = `Left item=${n(l)} cm, Right item=${n(r)} cm, Ratio=${ratio.toFixed(3)}`;
+        ok = ratio > 0.9 && ratio < 1.1;
+        break;
+      }
+      case 'belt': {
+        // Width
+        const lw = getVal('#belt-left-width'), rw = getVal('#belt-right-width');
+        let wOk = true, wMsg = '';
+        if (lw && rw) {
+          const wr = rw / lw;
+          wOk = wr > 0.9 && wr < 1.1;
+          wMsg = `Width ratio=${wr.toFixed(2)} (${wOk ? 'pass' : 'fail'})`;
+        } else { wMsg = 'Width not entered'; }
+
+        // Thickness
+        const lt = getVal('#belt-left-thickness'), rt = getVal('#belt-right-thickness');
+        let tOk = true, tMsg = '';
+        if (lt && rt) {
+          const tr = rt / lt;
+          tOk = tr > 0.9 && tr < 1.1;
+          tMsg = `Thickness ratio=${tr.toFixed(2)} (${tOk ? 'pass' : 'fail'})`;
+        } else { tMsg = 'Thickness not entered'; }
+
+        // Length
+        const ll = getVal('#belt-left-length'), rl = getVal('#belt-right-length');
+        let lOk = true, lMsg = '';
+        if (ll && rl) {
+          const ld = Math.abs(rl - ll), lr = rl / ll;
+          lOk = ld < 30 && lr > 0.8 && lr < 1.2;
+          lMsg = `Length difference=${ld.toFixed(1)} cm, Length ratio=${lr.toFixed(2)} (${lOk ? 'pass' : 'fail'})`;
+        } else { lMsg = 'Length not entered'; }
+
+        // All entered items must be qualified
+        ok = wOk && tOk && lOk;
+        detail = [wMsg, tMsg, lMsg].join(' | ');
+        break;
+      }
+    }
+
+    $('#result-text').textContent = ok ? 'Same' : 'Not Same';
+    $('#result-text').className = ok ? 'result-big same' : 'result-big different';
+    $('#result-explanation').textContent = ok ? 'Left item and right item data are within the allowed difference range' : 'Data exceeds the allowed difference range';
+    $('#calculation-details').textContent = detail;
+    playResult();
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function (e) {
+    // Only act inside the calculator (the scanner tab has its own controls)
+    if (!(e.target.closest && e.target.closest('#view-calc'))) return;
+
+    // Enter inside a field runs the calculation (buttons keep their normal Enter behaviour)
+    if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+      e.preventDefault();
+      $('#calculate').click();
+    }
+
+    // Arrow key navigation (only for input fields)
+    if (e.target.classList.contains('nav-input') &&
+        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+
+      e.preventDefault();
+      const currentInput = e.target;
+      const row = parseInt(currentInput.dataset.row);
+      const col = parseInt(currentInput.dataset.col);
+      const activeGroup = document.querySelector('.input-group.active');
+
+      let nextInput = null;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          if (row > 0) {
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row - 1}"][data-col="${col}"]`);
+          }
+          break;
+        case 'ArrowDown':
+          nextInput = activeGroup.querySelector(`.nav-input[data-row="${row + 1}"][data-col="${col}"]`);
+          if (!nextInput) {
+            // Try the first row in the same column
+            const firstInCol = activeGroup.querySelector(`.nav-input[data-col="${col}"]`);
+            if (firstInCol) nextInput = firstInCol;
+          }
+          break;
+        case 'ArrowLeft':
+          if (col > 0) {
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row}"][data-col="${col - 1}"]`);
+          }
+          break;
+        case 'ArrowRight':
+          nextInput = activeGroup.querySelector(`.nav-input[data-row="${row}"][data-col="${col + 1}"]`);
+          if (!nextInput) {
+            // Try the first column in the next row
+            nextInput = activeGroup.querySelector(`.nav-input[data-row="${row + 1}"][data-col="0"]`);
+          }
+          break;
+      }
+
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
+      }
+    }
+  });
+
+})();
+</script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const face=$('tFace'), digits=$('tDigits'), label=$('tLabel'), statusEl=$('tStatus'), bar=$('tBar'), live=$('tLive');
+  const F=[$('tH'),$('tM'),$('tS')], startBtn=$('tStart'), stopBtn=$('tStopAlarm'), resetBtn=$('tReset'), vol=$('tVol'), volOut=$('tVolOut');
+  const presets=[...document.querySelectorAll('[data-preset]')], radios=[...document.querySelectorAll('input[name="alarm"]')];
+  const MAX=99*3600+59*60+59, KEY='seed-timer';
+  let base=document.title, state='idle', total=80000, remaining=80000, endAt=0, ctx=null, master=null, prev=null, nextAt=0, ringStart=0, worker=null, fb=null;
+
+  // ----- sounds (Web Audio, synthesized) -----
+  const env=(c,d,o)=>{const x=c.createOscillator(),g=c.createGain(),v=o.v||.3,a=o.a||.008;x.type=o.type||'sine';x.frequency.setValueAtTime(o.f,o.t);
+    if(o.f2)x.frequency.linearRampToValueAtTime(o.f2,o.t+o.d);
+    g.gain.setValueAtTime(.0001,o.t);g.gain.linearRampToValueAtTime(v,o.t+a);if(o.hold)g.gain.setValueAtTime(v,o.t+o.d*o.hold);
+    g.gain.exponentialRampToValueAtTime(.0001,o.t+o.d);x.connect(g);g.connect(d);x.start(o.t);x.stop(o.t+o.d+.05);};
+  const SOUNDS={
+    digital:(c,d,t)=>{for(let i=0;i<3;i++)env(c,d,{type:'square',f:1000,t:t+i*.2,d:.12,v:.25});return 1.3;},
+    chime:(c,d,t)=>{[1318.5,1046.5,784].forEach((f,i)=>{env(c,d,{f,t:t+i*.32,d:1.1,v:.28,a:.01});env(c,d,{f:f*2,t:t+i*.32,d:.6,v:.1,a:.01});});return 2.4;},
+    bell:(c,d,t)=>{[0,1].forEach(k=>[1,2.76,5.4,8.93].forEach((r,i)=>env(c,d,{f:520*r,t:t+k*.95,d:1.8/(1+i*.6),v:.3/(1+i),a:.004})));return 2.8;},
+    kalimba:(c,d,t)=>{for(let k=0;k<2;k++)[392,587.3,493.9,784].forEach((f,i)=>{const s=t+k*1.1+i*.22;env(c,d,{f,t:s,d:.9,v:.3,a:.004});env(c,d,{f:f*4,t:s,d:.12,v:.06,a:.002});});return 2.2;},
+    arcade:(c,d,t)=>{for(let k=0;k<2;k++)[523.25,659.25,784,1046.5,1318.5].forEach((f,i)=>env(c,d,{type:'square',f,t:t+k*.6+i*.09,d:.1,v:.2}));return 1.5;},
+    marimba:(c,d,t)=>{[659.25,784,880,784,659.25,987.8].forEach((f,i)=>env(c,d,{type:'triangle',f,t:t+i*.15,d:.4,v:.35}));return 1.8;},
+    horn:(c,d,t)=>{for(let k=0;k<2;k++)[233,293.7,349.2].forEach(f=>env(c,d,{type:'sawtooth',f,t:t+k*1.2,d:1,v:.14,a:.03,hold:.8}));return 2.6;},
+    gentle:(c,d,t)=>{for(let k=0;k<3;k++){env(c,d,{f:440,t:t+k*.55,d:.7,v:.3,a:.06});env(c,d,{f:660,t:t+k*.55,d:.7,v:.15,a:.06});}return 2.4;}
+  };
+  const cur=()=>(radios.find(r=>r.checked)||radios[0]).value;
+  const gain=()=>Math.pow(vol.value/100,2);
+  const getCtx=()=>{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(A)ctx=new A();}if(ctx&&ctx.state==='suspended')ctx.resume();return ctx;};
+  const mkMaster=c=>{const m=c.createGain();m.gain.value=gain();m.connect(c.destination);return m;};
+  const fade=(m,c)=>{if(!m)return;m.gain.cancelScheduledValues(c.currentTime);m.gain.setTargetAtTime(0,c.currentTime,.02);setTimeout(()=>{try{m.disconnect();}catch(e){}},400);};
+  function preview(id){const c=getCtx();if(!c)return;fade(prev,c);prev=mkMaster(c);SOUNDS[id](c,prev,c.currentTime+.03);}
+  function startAlarm(){const c=getCtx();if(!c)return;master=mkMaster(c);nextAt=c.currentTime+.05;ringStart=Date.now();pump();}
+  function pump(){if(!ctx||!master)return;while(ctx.currentTime+.4>=nextAt)nextAt+=SOUNDS[cur()](ctx,master,nextAt);}
+  function ringOnce(){const c=getCtx();if(!c)return;if(master)fade(master,c);const m=master=mkMaster(c);const len=SOUNDS[cur()](c,m,c.currentTime+.03);setTimeout(()=>{if(master===m){fade(m,c);master=null;}},(len+.3)*1000);}
+  function stopSound(){if(master&&ctx){fade(master,ctx);}master=null;}
+
+  // ----- ticking (worker keeps time in background tabs) -----
+  function tickStart(){if(worker||fb)return;try{worker=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),200)'],{type:'text/javascript'})));worker.onmessage=tick;}catch(e){fb=setInterval(tick,250);}}
+  function tickStop(){if(worker){worker.terminate();worker=null;}if(fb){clearInterval(fb);fb=null;}}
+
+  // ----- helpers -----
+  const p2=n=>String(n).padStart(2,'0');
+  const fmt=ms=>{const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600);return (h?h+':':'')+p2(Math.floor(s%3600/60))+':'+p2(s%60);};
+  const readSecs=()=>{const n=e=>Math.max(0,parseInt(e.value,10)||0);return Math.min(MAX,n(F[0])*3600+n(F[1])*60+n(F[2]));};
+  const writeFields=s=>{F[0].value=Math.floor(s/3600);F[1].value=Math.floor(s%3600/60);F[2].value=s%60;};
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({secs:readSecs(),alarm:cur(),vol:+vol.value}));}catch(e){}};
+
+  function renderTitle(){
+    let t=base;
+    if(state==='running')t=fmt(remaining)+' \u00b7 Timer';
+    else if(state==='paused')t='\u23f8 '+fmt(remaining)+' \u00b7 Timer';
+    else if(state==='ringing')t=Math.floor(Date.now()/700)%2?'00:00 \u00b7 Timer':'\u23f0 Time\u2019s up!';
+    else if(state==='done')t='\u23f0 Time\u2019s up!';
+    if(document.title!==t)document.title=t;
+  }
+  function render(){
+    const idle=state==='idle', active=state==='running'||state==='paused', ring=state==='ringing', done=state==='done';
+    digits.textContent=fmt(idle?total:remaining);
+    face.dataset.state=state==='running'&&remaining<=10000?'low':state;
+    const names={idle:'Ready',running:'Running',paused:'Paused',ringing:'Time\u2019s up!',done:'Time\u2019s up!'};
+    label.textContent=statusEl.textContent=names[state];
+    bar.style.width=(total?(idle?100:Math.max(0,remaining/total*100)):0)+'%';
+    $('tStartLbl').textContent=state==='running'?'Pause':state==='paused'?'Resume':'Start';
+    $('tStartIcon').innerHTML=state==='running'?'&#10074;&#10074;':'&#9654;';
+    startBtn.hidden=ring||done; startBtn.disabled=idle&&total<=0;
+    stopBtn.hidden=!ring; resetBtn.hidden=ring; resetBtn.disabled=idle;
+    F.forEach(i=>i.disabled=!idle); presets.forEach(b=>b.disabled=!idle);
+    renderTitle();
+  }
+  function tick(){
+    if(state==='running'){remaining=endAt-Date.now();if(remaining<=0){cycle();return;}}
+    else if(state==='ringing'){pump();if(Date.now()-ringStart>60000){stopSound();state='done';tickStop();}}
+    render();
+  }
+  function cycle(){
+    // Timer always restarts: ring once, then begin the next countdown right away
+    ringOnce();live.textContent='Time\u2019s up! Restarting.';
+    endAt+=total;if(endAt<=Date.now())endAt=Date.now()+total;
+    remaining=endAt-Date.now();render();
+  }
+  function start(){
+    if(state==='idle'){total=readSecs()*1000;if(total<=0)return;remaining=total;}
+    else if(state!=='paused')return;
+    getCtx();endAt=Date.now()+remaining;state='running';tickStart();save();render();
+  }
+  function pause(){remaining=Math.max(0,endAt-Date.now());state='paused';tickStop();render();}
+  function reset(){stopSound();tickStop();state='idle';total=readSecs()*1000;remaining=total;live.textContent='';render();}
+
+  // ----- events -----
+  startBtn.addEventListener('click',()=>state==='running'?pause():start());
+  stopBtn.addEventListener('click',reset);
+  resetBtn.addEventListener('click',reset);
+  F.forEach(f=>{
+    f.addEventListener('input',()=>{if(state!=='idle')return;total=remaining=readSecs()*1000;render();});
+    f.addEventListener('change',()=>{writeFields(readSecs());total=remaining=readSecs()*1000;save();render();});
+    f.addEventListener('keydown',e=>{if(e.key==='Enter'){writeFields(readSecs());start();}});
+    f.addEventListener('focus',()=>f.select());
+  });
+  presets.forEach(b=>b.addEventListener('click',()=>{writeFields(+b.dataset.preset);total=remaining=readSecs()*1000;save();render();}));
+  radios.forEach(r=>r.addEventListener('change',save));
+  document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>{const r=document.getElementById('snd-'+b.dataset.play);r.checked=true;save();preview(b.dataset.play);}));
+  vol.addEventListener('input',()=>{volOut.textContent=vol.value+'%';if(master)master.gain.value=gain();});
+  vol.addEventListener('change',save);
+  window.addEventListener('viewchange',()=>{base=document.title;renderTitle();});
+
+  // ----- init -----
+  let saved={};try{saved=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
+  const secs=Number.isFinite(saved.secs)&&saved.secs>0?Math.min(MAX,saved.secs):80;
+  writeFields(secs);total=remaining=secs*1000;
+  (radios.find(r=>r.value===saved.alarm)||radios[0]).checked=true;
+  if(Number.isFinite(saved.vol)){vol.value=saved.vol;volOut.textContent=saved.vol+'%';}
+  render();
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const tabs = [...document.querySelectorAll('.tab')];
+  const views = { scanner: document.getElementById('view-scanner'), calc: document.getElementById('view-calc'), timer: document.getElementById('view-timer') };
+  const hashes = { scanner: 'item-check', calc: 'size-calculator', timer: 'timer' };
+  const titles = { scanner: 'Item Check', calc: 'Size Difference Calculator', timer: 'Alarm Timer' };
+  let current = 'scanner';
+
+  function activate(name, replay) {
+    if (!views[name] || name === current) return;
+    current = name;
+    if (replay) root.classList.add('replay');   // shorter entrance timing after the first load
+    Object.entries(views).forEach(([key, el]) => { el.hidden = key !== name; });
+    tabs.forEach(t => {
+      if (t.dataset.view === name) t.setAttribute('aria-current', 'page');
+      else t.removeAttribute('aria-current');
+    });
+    document.title = titles[name];
+    window.dispatchEvent(new CustomEvent('viewchange', { detail: name }));
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    activate(t.dataset.view, true);
+    try { history.replaceState(null, '', '#' + hashes[t.dataset.view]); } catch (e) {}
+  }));
+
+  const fromHash = () => Object.keys(hashes).find(k => '#' + hashes[k] === location.hash);
+  const start = fromHash();
+  if (start) activate(start, false);
+  window.addEventListener('hashchange', () => { const k = fromHash(); if (k) activate(k, true); });
+})();
+</script>
+<script>
+(() => {
+  const dlg = document.getElementById('rulesModal'), openBtn = document.getElementById('rulesBtn'), closeBtn = document.getElementById('rulesClose');
+  if (!dlg || !openBtn) return;
+  openBtn.addEventListener('click', () => {
+    const cat = (document.querySelector('.category-btn.active') || {}).dataset?.category;
+    dlg.querySelectorAll('.rule').forEach(r => r.classList.toggle('current', r.dataset.rule === cat));
+    dlg.showModal();
+    const cur = dlg.querySelector('.rule.current');
+    if (cur) cur.scrollIntoView({ block: 'nearest' });
+  });
+  let closing = false;
+  const closeModal = () => {
+    if (closing || !dlg.open) return;
+    closing = true;
+    dlg.classList.add('closing');
+    const done = () => { if (!closing) return; closing = false; dlg.classList.remove('closing'); dlg.close(); };
+    dlg.addEventListener('animationend', e => { if (e.target === dlg) done(); }, { once: true });
+    setTimeout(done, 220);
+  };
+  closeBtn.addEventListener('click', closeModal);
+  dlg.addEventListener('click', e => { if (e.target === dlg) closeModal(); });
+  dlg.addEventListener('cancel', e => { e.preventDefault(); closeModal(); });
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  let timer;
+  const sync = () => btn.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sync();
+  btn.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.classList.add('theme-switching');
+    root.dataset.theme = next;
+    sync();
+    try { localStorage.setItem('seed-theme', next); } catch (e) {}
+    clearTimeout(timer);
+    timer = setTimeout(() => root.classList.remove('theme-switching'), 350);
+  });
 })();
 </script>
 </body>
