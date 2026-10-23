@@ -164,6 +164,9 @@
   .thumb-n { position: absolute; right: 0; bottom: 0; padding: 3px 4px; background: var(--yellow); border-top: 2px solid var(--line); border-left: 2px solid var(--line); font-size: 10px; font-weight: 900; line-height: 1; }
   .thumb.none { display: flex; align-items: center; justify-content: center; border-style: dashed; box-shadow: none; font-size: 9px; line-height: 1.2; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; text-align: center; cursor: default; }
   .thumb.none:hover { transform: none; box-shadow: none; }
+  .thumb.open { cursor: pointer; color: var(--ink); text-decoration: none; }
+  .thumb.open:hover { background: var(--yellow); color: #000; transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--line); }
+  .thumb.open:active { transform: translate(2px, 2px); box-shadow: none; }
 
   /* Multi JSON inputs */
   .jin-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; min-height: 30px; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
@@ -967,9 +970,19 @@
       const badge = btn.querySelector('.thumb-n');
       if (badge) { if (good.length > 1) badge.textContent = '+' + (good.length - 1); else badge.remove(); }
     } else {
-      const ph = document.createElement('div');
-      ph.className = 'thumb none'; ph.setAttribute('aria-hidden', 'true'); ph.textContent = 'No img';
-      btn.replaceWith(ph);
+      const url = s.images[0];
+      if (/^https?:\/\//i.test(url)) {
+        // Images that need a login can't load inline here, but they open fine in a new tab
+        const a = document.createElement('a');
+        a.className = 'thumb none open'; a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.setAttribute('aria-label', 'Open image in a new tab for ' + s.productTitle);
+        a.textContent = 'Open';
+        btn.replaceWith(a);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'thumb none'; ph.setAttribute('aria-hidden', 'true'); ph.textContent = 'No img';
+        btn.replaceWith(ph);
+      }
     }
   }, true);
 
