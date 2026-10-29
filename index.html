@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('seed-theme')==='dark'?'dark':'light';}catch(e){}</script>
+<script>try{const a=JSON.parse(localStorage.getItem('seed-accents'))||{};for(const k of['red','yellow','violet'])if(/^#[0-9a-f]{6}$/i.test(a[k]||''))document.documentElement.style.setProperty('--'+k,a[k]);}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Item Check</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,7 +42,7 @@
     color-scheme: dark;
   }
   body { margin: 0; min-height: 100vh; color: var(--ink); font-family: var(--sans); font-weight: 700; -webkit-font-smoothing: antialiased;
-    background-color: var(--paper); background-image: var(--dots); background-size: 24px 24px; }
+    background-color: var(--paper); }
   button, textarea, input, select { font: inherit; color: inherit; }
   code { font-family: var(--mono); font-size: .88em; font-weight: 700; background: var(--card); border: 2px solid var(--line); padding: 1px 5px; }
   input[type=file] { display: none; }
@@ -427,6 +428,82 @@
     .t-inputs .unit-static { min-width: 0; padding: 0 7px; font-size: 11px; }
     .t-inputs .field input { min-width: 0; font-size: 20px; }
   }
+
+  /* ============ DRIFTING DOT BACKGROUND ============ */
+  body::before { content: ""; position: fixed; inset: -24px 0 0 -24px; z-index: -1; pointer-events: none; background-image: var(--dots); background-size: 24px 24px; }
+  @keyframes drift { to { transform: translate(24px, 24px); } }
+  @media (prefers-reduced-motion: no-preference) { body::before { animation: drift 4s linear infinite; will-change: transform; } }
+
+  /* ============ SCROLL-TO-TOP FAB ============ */
+  :root { --nw: min(440px, calc(100vw - 36px)); --cw: min(340px, calc(100vw - 36px)); }
+  .fab { position: fixed; right: calc(20px + var(--fab-shift, 0px)); bottom: 20px; z-index: 880; width: 44px; height: 44px; padding: 0; background: var(--red); color: #000;
+    opacity: 0; visibility: hidden; transform: translateY(12px);
+    transition: opacity .15s ease-out, transform .15s ease-out, visibility 0s .15s, right .22s ease-out, background var(--snap), box-shadow var(--snap); }
+  .fab.show { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .fab.show:active { transform: translate(4px, 4px); }
+  .fab svg { width: 20px; height: 20px; display: block; }
+  .notes-open .fab { --fab-shift: var(--nw); }
+  .colors-open .fab { --fab-shift: var(--cw); }
+  @media (max-width: 700px) { .notes-open .fab, .colors-open .fab { opacity: 0; visibility: hidden; } }
+
+  /* ============ NOTEPAD DRAWER ============ */
+  .notes { position: fixed; top: 0; right: 0; bottom: 0; z-index: 900; width: var(--nw); transform: translateX(100%); transition: transform .22s ease-out; }
+  .notes.open { transform: none; }
+  .nt-handle { position: absolute; right: 100%; top: 42%; padding: 14px 6px; border-right: 0; background: var(--violet); color: #000; box-shadow: -3px 3px 0 var(--line);
+    writing-mode: vertical-rl; font-size: 11px; letter-spacing: .24em; opacity: .8; transform: translateX(4px);
+    transition: opacity var(--snap), transform var(--snap), background var(--snap), box-shadow var(--snap); }
+  .nt-handle:hover, .nt-handle:focus-visible, .notes.open .nt-handle { opacity: 1; transform: none; }
+  .nt-handle:active { transform: translateX(2px); box-shadow: none; }
+  .notes.open .nt-handle { background: var(--red); color: #000; }
+  .notes.open .nt-handle:hover { background: var(--yellow); }
+  .nt-card { display: flex; flex-direction: column; height: 100%; background: var(--paper); border-left: var(--b) solid var(--line); visibility: hidden; transition: visibility 0s .22s; }
+  .notes.open .nt-card { visibility: visible; transition-delay: 0s; }
+  .nt-head-r { display: flex; align-items: center; gap: 12px; }
+  .nt-body { flex: 1; min-height: 0; display: flex; padding: 16px 16px 0; }
+  .nt-editor { position: relative; flex: 1; min-width: 0; overflow: auto; padding: 14px; background: var(--card); border: var(--b) solid var(--line); outline: none;
+    font: 700 13px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; transition: background var(--snap), box-shadow var(--snap); }
+  .nt-editor:focus { background: var(--yellow); color: #000; box-shadow: var(--sh-s); }
+  .nt-editor.is-empty::before { content: attr(data-ph); position: absolute; left: 14px; right: 14px; top: 14px; opacity: .4; pointer-events: none; }
+  .nt-editor img { display: inline-block; vertical-align: top; max-width: 100%; height: auto; margin: 6px 0; border: 3px solid var(--line); background: var(--card); cursor: pointer; }
+  .nt-editor.drag { background: var(--violet); color: #000; }
+  .nt-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 16px; }
+  .nt-hint { font-size: 11px; line-height: 1.4; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+  .nt-clear { flex-shrink: 0; padding: 8px 12px; font-size: 11px; letter-spacing: .1em; border-width: 3px; box-shadow: 3px 3px 0 var(--line); }
+  .nt-clear.arm { background: var(--red); color: #000; }
+  .nt-editor:focus-visible { outline: none; }
+  @media (prefers-reduced-motion: reduce) { .fab, .notes, .nt-card, .nt-handle { transition: none !important; } }
+
+  /* Consecutive duplicates */
+  .seed.dup { background: var(--card); }
+  .seed.dup .seed-num { background: var(--violet); }
+  .seed-actions button.dup-btn { gap: 7px; padding: 7px 4px; border: 0; border-bottom: 3px dashed var(--line); background: transparent; color: var(--ink); box-shadow: none; }
+  .seed-actions button.dup-btn:hover { background: var(--yellow); color: #000; }
+  .dup-btn .dd { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid currentColor; transition: transform var(--snap); }
+  .dup-btn[aria-expanded="true"] .dd { transform: rotate(180deg); }
+
+  /* ============ COLORS DRAWER ============ */
+  .notes.colors { width: var(--cw); }
+  #colorsTab { top: calc(42% + 92px); }
+  .notes.colors .nt-handle:not(:hover) { background: var(--red); }
+  .notes.colors.open .nt-handle { background: var(--yellow); }
+  .notes-open #colorsTab, .colors-open #notesTab { visibility: hidden; }
+  .cl-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 22px; }
+  .cl-label { margin-bottom: 10px; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+  .cl-pre { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cl-pre button { justify-content: flex-start; gap: 10px; padding: 8px 10px; font-size: 11px; border-width: 3px; box-shadow: 3px 3px 0 var(--line); }
+  .cl-pre button:active { box-shadow: none; }
+  .cl-pre .sq { display: flex; border: 2px solid var(--line); }
+  .cl-pre .sq i { display: block; width: 14px; height: 18px; }
+  .cl-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .cl-chip { flex-shrink: 0; width: 28px; height: 28px; border: 3px solid var(--line); }
+  .cl-name { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .cl-name small { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: none; opacity: .7; }
+  .cl-head input[type=color] { width: 44px; height: 30px; padding: 0; border: 3px solid var(--line); background: var(--card); cursor: pointer; }
+  .cl-sw { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .cl-sw button { aspect-ratio: 1; min-height: 0; padding: 0; border: 3px solid var(--line); box-shadow: none; }
+  .cl-sw button:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--line); }
+  .cl-sw button:active { transform: none; box-shadow: none; }
+  .cl-sw button[aria-pressed="true"] { outline: 3px solid var(--line); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -662,6 +739,40 @@
 
 </div>
 
+<button type="button" class="fab" id="toTop" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" aria-hidden="true"><path d="M12 20V5M5 12l7-7 7 7"/></svg></button>
+
+<aside class="notes" id="notes" aria-label="Notepad">
+  <button type="button" class="nt-handle" id="notesTab" aria-expanded="false" aria-controls="notesCard">Notes</button>
+  <div class="nt-card" id="notesCard">
+    <div class="panel-head">
+      <div class="panel-title"><span class="idx">&#9998;</span>Notes</div>
+      <div class="nt-head-r"><span class="panel-status" id="notesStatus" role="status">Saved</span><button type="button" class="head-btn" id="notesClose" aria-label="Close notes">&times;</button></div>
+    </div>
+    <div class="nt-body">
+      <div class="nt-editor is-empty" id="notesEditor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Notes. Type, or paste text and images." data-ph="Dump anything here. Paste text or images." spellcheck="false"></div>
+    </div>
+    <div class="nt-foot">
+      <span class="nt-hint">Paste or drop images. Click one, then Delete to remove.</span>
+      <button type="button" class="nt-clear" id="notesClear">Clear</button>
+    </div>
+  </div>
+</aside>
+
+<aside class="notes colors" id="colors" aria-label="Accent colors">
+  <button type="button" class="nt-handle" id="colorsTab" aria-expanded="false" aria-controls="colorsCard">Colors</button>
+  <div class="nt-card" id="colorsCard">
+    <div class="panel-head">
+      <div class="panel-title"><span class="idx">&#9673;</span>Colors</div>
+      <div class="nt-head-r"><button type="button" class="head-btn" id="colorsClose" aria-label="Close colors">&times;</button></div>
+    </div>
+    <div class="cl-body" id="clBody"></div>
+    <div class="nt-foot">
+      <span class="nt-hint">Dark picks are lightened so text stays readable.</span>
+      <button type="button" class="nt-clear" id="colorsReset">Reset</button>
+    </div>
+  </div>
+</aside>
+
 <dialog class="rules-modal" id="rulesModal" aria-labelledby="rulesTitle">
   <div class="modal-head"><h2 class="modal-title" id="rulesTitle">Calculation Rules</h2><button type="button" class="modal-close" id="rulesClose" aria-label="Close rules">&#10005;</button></div>
   <div class="modal-body">
@@ -883,6 +994,17 @@
     return { total: items.length, found };
   }
 
+  // Consecutive seeds with the same product title: keep the first, flag the rest as duplicates
+  function markDups(list) {
+    let lead = null, u = 0;
+    list.forEach(s => {
+      const k = s.productTitle === '(No product title found)' ? null : String(s.productTitle).trim().replace(/\s+/g, ' ');
+      if (lead && k !== null && lead.k === k) { s.isDup = true; lead.dupN++; }
+      else { s.isDup = false; s.k = k; s.dupN = 0; lead = s; u++; }
+    });
+    return u;
+  }
+
   const friendly = err => err instanceof SyntaxError
     ? `Invalid JSON \u2014 ${err.message}. Check the response was copied in full (no missing brackets or extra text before/after).`
     : (err instanceof Error ? err.message : 'Unable to read this JSON.');
@@ -915,11 +1037,12 @@
 
   function render(total, found, multi) {
     seeds = found;
-    const rate = total ? (found.length / total) * 100 : 0;
+    const uniq = found.filter(x => !x.isDup).length;
+    const rate = total ? (uniq / total) * 100 : 0;
     countTo(productCount, total);
-    countTo(seedCount, found.length);
+    countTo(seedCount, uniq);
     countTo(seedRate, rate, 1, '%');
-    lastStatus = plural(found.length, 'seed');
+    lastStatus = plural(uniq, 'seed');
     status.textContent = lastStatus;
     resultsPanel.classList.remove('scanning'); void resultsPanel.offsetWidth; resultsPanel.classList.add('scanning');
     rateBar.style.width = Math.min(rate, 100) + '%';
@@ -934,23 +1057,25 @@
 
     emptyState.hidden = true;
     seedList.hidden = false;
-    seedList.innerHTML = found.map((seed, i) => `
-      <article class="seed" style="--i:${Math.min(i, 12)}">
-        <div class="seed-num">${pad(i + 1)}</div>
+    let n = 0, g = 0;
+    seedList.innerHTML = found.map((seed, i) => { if (!seed.isDup) { n++; g = i; } return `
+      <article class="seed${seed.isDup ? ' dup' : ''}" style="--i:${Math.min(i, 12)}"${seed.isDup ? ` data-g="${g}" hidden` : ''}>
+        <div class="seed-num">${seed.isDup ? '&#8627;' : pad(n)}</div>
         <div class="seed-body">
           ${thumbHtml(seed, i)}
           <div class="seed-main">
-            <div class="seed-tag">Seed item${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}</div>
+            <div class="seed-tag">${seed.isDup ? 'Duplicate of ' + pad(n) : 'Seed item'}${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}</div>
             <div class="title">${escapeHtml(seed.productTitle)}</div>
             <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
             <div class="seed-actions">
               <button data-copy-title="${i}"><span class="label">Copy Title</span></button>
               <button data-copy-id="${i}"><span class="label">Copy ID</span></button>
+              ${seed.dupN ? `<button type="button" class="dup-btn" data-dup="${i}" data-n="${seed.dupN}" aria-expanded="false"><span class="label">${plural(seed.dupN, 'duplicate')}</span><span class="dd" aria-hidden="true"></span></button>` : ''}
             </div>
           </div>
         </div>
       </article>
-    `).join('');
+    `; }).join('');
 
     seedList.querySelectorAll('[data-copy-title]').forEach(btn => btn.addEventListener('click', () => copyText(seeds[btn.dataset.copyTitle].productTitle, btn)));
     seedList.querySelectorAll('[data-copy-id]').forEach(btn => btn.addEventListener('click', () => copyText(String(seeds[btn.dataset.copyId].dataId), btn)));
@@ -987,6 +1112,13 @@
   }, true);
 
   seedList.addEventListener('click', e => {
+    const dp = e.target.closest('[data-dup]');
+    if (dp) {
+      const open = dp.getAttribute('aria-expanded') !== 'true';
+      dp.setAttribute('aria-expanded', String(open));
+      seedList.querySelectorAll(`.seed.dup[data-g="${dp.dataset.dup}"]`).forEach(a => { a.hidden = !open; });
+      return;
+    }
     const btn = e.target.closest('[data-zoom]');
     if (btn) openViewer(seeds[btn.dataset.zoom], btn);
   });
@@ -1055,11 +1187,14 @@
       showNotice(`Nothing could be read \u2014 ${plural(failed.length, 'input')} failed (${names}). See the error under each box.`);
       return;
     }
+    markDups(all);   // group across inputs too, so repeats split by pagination still merge
     render(total, all, active.length > 1);
+    const uniq = all.filter(x => !x.isDup).length, dupN = all.length - uniq;
+    const dupTxt = dupN ? ` ${plural(dupN, 'repeated duplicate')} hidden.` : '';
     const where = active.length > 1 ? ` across ${plural(ok, 'input')}` : '';
     const skip = skipped ? ` ${plural(skipped, 'empty box').replace('boxs', 'boxes')} ignored.` : '';
-    if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(all.length, 'seed')} kept. Failed: ${names}. See the error under each box.${skip}`, 'error');
-    else showNotice(`Scan complete \u2014 ${plural(all.length, 'seed')} found${where}.${skip}`, 'success');
+    if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(uniq, 'seed')} kept.${dupTxt} Failed: ${names}. See the error under each box.${skip}`, 'error');
+    else showNotice(`Scan complete \u2014 ${plural(uniq, 'seed')} found${where}.${dupTxt}${skip}`, 'success');
   }
   scanBtn.addEventListener('click', runBatch);
 
@@ -1078,7 +1213,7 @@
   });
 
   copyAllBtn.addEventListener('click', () => {
-    const text = seeds.map((s, i) => `${i + 1}. ${s.productTitle}\n   Data ID: ${s.dataId}`).join('\n\n');
+    const text = seeds.filter(s => !s.isDup).map((s, i) => `${i + 1}. ${s.productTitle}\n   Data ID: ${s.dataId}`).join('\n\n');
     copyText(text, copyAllBtn);
   });
 
@@ -1618,6 +1753,175 @@
     clearTimeout(timer);
     timer = setTimeout(() => root.classList.remove('theme-switching'), 350);
   });
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement, $ = id => document.getElementById(id);
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ----- scroll-to-top FAB -----
+  const fab = $('toTop');
+  const onScroll = () => fab.classList.toggle('show', window.scrollY > 320);
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  fab.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: reduce() ? 'auto' : 'smooth' });
+    const t = document.querySelector('.tab[aria-current="page"]'); if (t) t.focus({ preventScroll: true });
+  });
+
+  // ----- notepad drawer -----
+  const KEY = 'seed-notes', box = $('notes'), tab = $('notesTab'), ed = $('notesEditor'), status = $('notesStatus'), clr = $('notesClear');
+  const IMG_OK = /^image\/(png|jpe?g|gif|webp|avif|bmp)$/i;
+  function setOpen(o, focus) {
+    box.classList.toggle('open', o); root.classList.toggle('notes-open', o); tab.setAttribute('aria-expanded', String(o));
+    if (focus) { if (o) setTimeout(() => ed.focus({ preventScroll: true }), 60); else tab.focus({ preventScroll: true }); }
+  }
+  tab.addEventListener('click', () => setOpen(!box.classList.contains('open'), true));
+  $('notesClose').addEventListener('click', () => setOpen(false, true));
+  box.addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) { e.stopPropagation(); setOpen(false, true); } });
+
+  const syncEmpty = () => ed.classList.toggle('is-empty', !ed.innerText.trim() && !ed.querySelector('img'));
+  let timer;
+  function save() {
+    status.textContent = 'Saving';
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      try { localStorage.setItem(KEY, ed.innerHTML); status.textContent = 'Saved'; }
+      catch (e) { status.textContent = 'Storage full'; }
+    }, 400);
+  }
+  const changed = () => { syncEmpty(); save(); };
+
+  // Rebuild saved content from a whitelist (text, line breaks, data: images only)
+  function clean(html) {
+    const t = document.createElement('template'); t.innerHTML = html;
+    const out = document.createDocumentFragment();
+    (function walk(src, dst) {
+      src.childNodes.forEach(n => {
+        if (n.nodeType === 3) dst.appendChild(document.createTextNode(n.nodeValue));
+        else if (n.nodeName === 'BR') dst.appendChild(document.createElement('br'));
+        else if (n.nodeName === 'IMG') {
+          const u = n.getAttribute('src') || '';
+          if (/^data:image\/(png|jpe?g|gif|webp|avif|bmp);base64,/i.test(u)) { const i = document.createElement('img'); i.src = u; i.alt = 'Pasted image'; dst.appendChild(i); }
+        } else if (n.nodeName === 'DIV' || n.nodeName === 'P') { const d = document.createElement('div'); walk(n, d); dst.appendChild(d); }
+        else walk(n, dst);
+      });
+    })(t.content, out);
+    return out;
+  }
+  try { const v = localStorage.getItem(KEY); if (v) ed.appendChild(clean(v)); } catch (e) {}
+  syncEmpty();
+
+  // Read an image; shrink big ones so localStorage doesn't fill up
+  const readURL = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+  async function prep(file) {
+    const raw = await readURL(file);
+    if (file.size < 250 * 1024) return raw;
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = raw; });
+    const k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', .82);
+  }
+  async function addImages(files) {
+    ed.focus({ preventScroll: true });
+    for (const f of files) {
+      try { document.execCommand('insertImage', false, await prep(f)); } catch (e) {}
+    }
+    ed.querySelectorAll('img:not([alt])').forEach(i => { i.alt = 'Pasted image'; });
+    changed();
+  }
+
+  ed.addEventListener('paste', e => {
+    const cd = e.clipboardData; if (!cd) return;
+    const text = cd.getData('text/plain');
+    const imgs = [...cd.files].filter(f => IMG_OK.test(f.type));
+    e.preventDefault();
+    if (text) document.execCommand('insertText', false, text);   // plain text only, keeps undo
+    else if (imgs.length) addImages(imgs);
+  });
+  ed.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); ed.classList.add('drag'); } });
+  ['dragleave', 'dragend'].forEach(n => ed.addEventListener(n, () => ed.classList.remove('drag')));
+  ed.addEventListener('drop', e => {
+    ed.classList.remove('drag');
+    const imgs = [...(e.dataTransfer?.files || [])].filter(f => IMG_OK.test(f.type));
+    e.preventDefault();
+    if (imgs.length) addImages(imgs);
+    else { const t = e.dataTransfer?.getData('text/plain'); if (t) { ed.focus(); document.execCommand('insertText', false, t); } }
+  });
+  // click an image to select it, so Backspace/Delete removes it in every browser
+  ed.addEventListener('click', e => {
+    if (e.target.tagName !== 'IMG') return;
+    const r = document.createRange(); r.selectNode(e.target);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+  ed.addEventListener('input', changed);
+
+  // two-step clear
+  let armT;
+  clr.addEventListener('click', () => {
+    if (!clr.classList.contains('arm')) {
+      clr.classList.add('arm'); clr.textContent = 'Sure?';
+      armT = setTimeout(() => { clr.classList.remove('arm'); clr.textContent = 'Clear'; }, 3000); return;
+    }
+    clearTimeout(armT); clr.classList.remove('arm'); clr.textContent = 'Clear';
+    ed.innerHTML = ''; changed(); ed.focus({ preventScroll: true });
+  });
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement, $ = id => document.getElementById(id);
+  const KEY = 'seed-accents', HEX = /^#[0-9a-f]{6}$/i;
+  const SLOTS = [['red', 'Main', 'Buttons, active tab'], ['yellow', 'Highlight', 'Hover, hero, notices'], ['violet', 'Extra', 'Stats, calc hero, tabs']];
+  const SW = ['#FF6B6B','#FF8FA3','#FF5FA2','#F783AC','#FFA8A8','#FF9F80','#FFA94D','#FFC078','#FFD93D','#FFE066','#FFF3A3','#B6F442',
+              '#A9E34B','#69DB7C','#8CE99A','#38D9A9','#63E6BE','#5EE7F5','#66D9E8','#74C0FC','#91A7FF','#C4B5FD','#D0BFFF','#E599F7'];
+  const PRE = [['Default','#FF6B6B','#FFD93D','#C4B5FD'], ['Sunset','#FF9F80','#FFD93D','#E599F7'], ['Ocean','#74C0FC','#FFF3A3','#38D9A9'], ['Candy','#FF8FA3','#FFF3A3','#A5D8FF'],
+               ['Forest','#69DB7C','#FFE066','#63E6BE'], ['Grape','#D0BFFF','#FFC9DE','#91A7FF'], ['Neon','#FF5FA2','#B6F442','#5EE7F5'], ['Mono','#E9ECEF','#CED4DA','#ADB5BD']];
+
+  let acc = {}; try { acc = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  SLOTS.forEach(([k]) => { if (!HEX.test(acc[k] || '')) delete acc[k]; });
+
+  // Text on accents is always black, so keep custom picks light enough to read
+  const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+  const fit = h => { for (let t = 0; lum(h) < .18 && t < 20; t++) h = '#' + [1, 3, 5].map(i => { const v = parseInt(h.substr(i, 2), 16); return Math.min(255, Math.round(v + (255 - v) * .12)).toString(16).padStart(2, '0'); }).join(''); return h.toUpperCase(); };
+  const apply = (k, v) => { if (v) { acc[k] = v; root.style.setProperty('--' + k, v); } else { delete acc[k]; root.style.removeProperty('--' + k); } };
+  const persist = () => { try { Object.keys(acc).length ? localStorage.setItem(KEY, JSON.stringify(acc)) : localStorage.removeItem(KEY); } catch (e) {} };
+
+  const body = $('clBody');
+  body.innerHTML = `<section><div class="cl-label">Palettes</div><div class="cl-pre">${PRE.map(p => `<button type="button" data-pre="${p[0]}"><span class="sq">${p.slice(1).map(c => `<i style="background:${c}"></i>`).join('')}</span>${p[0]}</button>`).join('')}</div></section>`
+    + SLOTS.map(([k, n, d]) => `<section data-k="${k}"><div class="cl-head"><span class="cl-chip" style="background:var(--${k})"></span><span class="cl-name"><b>${n}</b><small>${d}</small></span><input type="color" aria-label="Custom ${n} color"></div><div class="cl-sw">${SW.map(c => `<button type="button" style="background:${c}" data-c="${c}" aria-label="${c}" aria-pressed="false"></button>`).join('')}</div></section>`).join('');
+
+  const sync = () => SLOTS.forEach(([k]) => {
+    const sec = body.querySelector(`[data-k="${k}"]`), inp = sec.querySelector('input');
+    sec.querySelectorAll('[data-c]').forEach(b => b.setAttribute('aria-pressed', String(!!acc[k] && b.dataset.c.toLowerCase() === acc[k].toLowerCase())));
+    const cur = acc[k] || getComputedStyle(root).getPropertyValue('--' + k).trim();
+    if (document.activeElement !== inp) inp.value = HEX.test(cur) ? cur.toLowerCase() : '#ffffff';
+  });
+  body.addEventListener('click', e => {
+    const sw = e.target.closest('[data-c]'), pre = e.target.closest('[data-pre]');
+    if (sw) apply(sw.closest('[data-k]').dataset.k, sw.dataset.c);
+    else if (pre) { const p = PRE.find(x => x[0] === pre.dataset.pre); SLOTS.forEach(([k], i) => apply(k, p[0] === 'Default' ? null : p[i + 1])); }
+    else return;
+    persist(); sync();
+  });
+  body.addEventListener('input', e => {
+    if (e.target.type !== 'color') return;
+    apply(e.target.closest('[data-k]').dataset.k, fit(e.target.value)); persist(); sync();
+  });
+  $('colorsReset').addEventListener('click', () => { SLOTS.forEach(([k]) => apply(k, null)); persist(); sync(); });
+
+  // ----- drawer -----
+  const box = $('colors'), tab = $('colorsTab');
+  function setOpen(o, focus) {
+    box.classList.toggle('open', o); root.classList.toggle('colors-open', o); tab.setAttribute('aria-expanded', String(o));
+    if (o) sync();
+    if (focus) { if (o) setTimeout(() => body.querySelector('button').focus({ preventScroll: true }), 60); else tab.focus({ preventScroll: true }); }
+  }
+  tab.addEventListener('click', () => setOpen(!box.classList.contains('open'), true));
+  $('colorsClose').addEventListener('click', () => setOpen(false, true));
+  box.addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) { e.stopPropagation(); setOpen(false, true); } });
+  sync();
 })();
 </script>
 </body>
