@@ -526,6 +526,92 @@
   .cl-sw button:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--line); }
   .cl-sw button:active { transform: none; box-shadow: none; }
   .cl-sw button[aria-pressed="true"] { outline: 3px solid var(--line); outline-offset: 2px; }
+
+  /* Labels, modal, history */
+  .lab-badge { display: inline-block; margin-left: 8px; padding: 1px 7px; border: 2px solid #000; background: #000; color: #fff; font-size: 11px; letter-spacing: .08em; }
+  .lab-badge.b-X { background: #FF6B6B; color: #000; }
+  .seed[class*="lab-"] { color: #000; }
+  .seed.lab-A { background: #BBF7D0; } .seed.lab-S { background: #FEF08A; } .seed.lab-D { background: #FECACA; }
+  .seed.lab-A .seed-num { background: #4ADE80; } .seed.lab-S .seed-num { background: #FACC15; } .seed.lab-D .seed-num { background: #F87171; }
+  .seed[class*="lab-"] button:not(.dup-btn) { background: #fff; color: #000; }
+  .seed[class*="lab-"] button:not(.dup-btn):hover { background: var(--yellow); }
+  .seed[class*="lab-"] .dup-btn { color: #000; }
+  .sw { border: 0; background: transparent; box-shadow: none; padding: 4px 2px; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .04em; opacity: .7; }
+  .sw:hover { background: transparent; opacity: 1; } .sw:active { transform: none; }
+  .sw-t { position: relative; width: 30px; height: 16px; border: 2px solid var(--line); background: var(--card); transition: background var(--snap); }
+  .sw-t::after { content: ""; position: absolute; top: 2px; left: 2px; width: 8px; height: 8px; background: var(--line); transition: transform var(--snap); }
+  .sw[aria-checked="true"] { opacity: 1; } .sw[aria-checked="true"] .sw-t { background: var(--red); } .sw[aria-checked="true"] .sw-t::after { transform: translateX(14px); }
+  .lab-dlg { padding: 0; border: var(--b) solid var(--line); background: var(--paper); color: var(--ink); box-shadow: var(--sh-l); width: min(540px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; }
+  .lab-dlg::backdrop { background: rgba(0,0,0,.62); }
+  .lab-dlg[open] { animation: ldpop .16s ease-out; }
+  @keyframes ldpop { from { opacity: 0; transform: translateY(14px); } }
+  .lab-dlg[open]::backdrop { animation: ldfade .25s ease-out; }
+  .lab-dlg.closing { animation: ldout .18s ease-in forwards; }
+  .lab-dlg.closing::backdrop { animation: ldfade .18s ease-in reverse forwards; }
+  @keyframes ldfade { from { opacity: 0; } }
+  @keyframes ldout { to { opacity: 0; transform: translateY(10px); } }
+  @media (prefers-reduced-motion: reduce) { .lab-dlg[open], .lab-dlg[open]::backdrop { animation: none; } }
+  .ld-head { display: flex; align-items: stretch; background: var(--red); color: #000; border-bottom: var(--b) solid var(--line); }
+  .ld-n { display: flex; align-items: center; padding: 0 16px; background: transparent; color: #000; border-right: var(--b) solid #000; font-size: 26px; font-weight: 900; letter-spacing: -.04em; }
+  .ld-t { flex: 1; min-width: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .ld-t small { font-size: 10px; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
+  .ld-t b { font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ld-x { align-self: center; margin: 0 12px; width: 34px; height: 34px; padding: 0; font-size: 22px; border-width: 3px; box-shadow: 3px 3px 0 #000; background: #fff; color: #000; }
+  .ld-body { padding: 18px 16px 4px; background-image: var(--grid); background-size: 24px 24px; }
+  .ld-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .ld-sub { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 3px dashed var(--line); }
+  .ld-opt { justify-content: flex-start; gap: 10px; padding: 10px; text-align: left; color: #000; border-width: 3px; box-shadow: 4px 4px 0 var(--line); font-size: 12px; line-height: 1.2; }
+  .ld-main .ld-opt { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; min-height: 108px; font-size: 14px; }
+  .ld-opt kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; background: #fff; color: #000; border: 2px solid #000; box-shadow: 2px 2px 0 #000; font-family: var(--mono); font-size: 13px; font-weight: 900; }
+  .ld-main kbd { min-width: 42px; height: 42px; font-size: 24px; }
+  .o-A { background: #4ADE80; } .o-S { background: #FACC15; } .o-D { background: #F87171; }
+  .ld-sub .ld-opt { background: #FECACA; } .ld-sub .ld-opt.on { background: #F87171; }
+  .ld-opt:hover { filter: brightness(1.08); }
+  .ld-opt.on { box-shadow: none; transform: translate(4px, 4px); outline: 3px solid #000; outline-offset: -3px; }
+  .ld-opt.on kbd { background: #000; color: #fff; }
+  .ld-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding: 12px 16px; border-top: var(--b) solid var(--line); background: var(--card); }
+  .ld-hint { flex: 1; text-align: center; font-size: 10px; letter-spacing: .08em; opacity: .65; }
+  .ld-clear, .hb-del { padding: 4px 2px; border: 0; border-bottom: 3px dashed var(--line); background: transparent; box-shadow: none; font-size: 11px; }
+  .ld-clear:hover, .hb-del:hover { background: var(--yellow); color: #000; } .ld-clear:active, .hb-del:active { transform: none; }
+  .hist { position: fixed; top: 0; left: 0; bottom: 0; z-index: 950; width: min(580px, 100vw); display: flex; flex-direction: column; background: var(--paper); background-image: var(--dots); background-size: 24px 24px; border-right: var(--b) solid var(--line); box-shadow: 12px 0 0 var(--line); visibility: hidden; transform: translateX(-104%); transition: transform .22s ease-out, visibility 0s .22s; }
+  .hist.open { visibility: visible; transform: none; transition: transform .22s ease-out; }
+  .hist-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 16px; background: var(--red); color: #000; border-bottom: var(--b) solid var(--line); }
+  .hist-head h2 { margin: 0 auto 0 0; font-size: 34px; line-height: 1; font-weight: 900; letter-spacing: -.04em; }
+  .hist-head .head-btn { background: #fff; color: #000; box-shadow: 3px 3px 0 #000; } .hist-head .head-btn:hover { background: var(--yellow); }
+  .hist-search { flex: 1 1 100%; padding: 11px 12px; border: 3px solid #000; background: #fff; color: #000; box-shadow: 4px 4px 0 #000; font-weight: 700; }
+  .hist-search:focus-visible { outline: 3px solid #000; outline-offset: 3px; }
+  .hist-msg { padding: 8px 16px; font-size: 12px; border-bottom: 3px solid var(--line); background: var(--yellow); color: #000; } .hist-msg.err { background: var(--red); }
+  .hist-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .hist-empty { padding: 22px; border: var(--b) dashed var(--line); background: var(--card); text-align: center; }
+  .hb { flex: none; border: var(--b) solid var(--line); background: var(--card); box-shadow: var(--sh-s); }
+  .hb > summary { display: flex; align-items: stretch; cursor: pointer; list-style: none; }
+  .hb > summary::-webkit-details-marker { display: none; }
+  .hb > summary::after { content: "\25BE"; align-self: center; padding: 0 14px; font-size: 16px; transition: transform var(--snap); }
+  .hb[open] > summary { border-bottom: var(--b) solid var(--line); } .hb[open] > summary::after { transform: rotate(180deg); }
+  .hb-n { display: flex; align-items: center; justify-content: center; min-width: 64px; background: var(--yellow); color: #000; border-right: var(--b) solid var(--line); font-size: 24px; font-weight: 900; letter-spacing: -.04em; }
+  .hb[open] .hb-n { background: var(--red); }
+  .hb-m { flex: 1; min-width: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; } .hb-m b { font-size: 13px; }
+  .hb-c { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ch { padding: 1px 6px; border: 2px solid var(--line); background: var(--card); font-style: normal; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
+  .ch.cA { background: #4ADE80; color: #000; } .ch.cS { background: #FACC15; color: #000; } .ch.cD { background: #F87171; color: #000; } .ch.cX { background: var(--red); color: #000; }
+  .hi { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 14px; border-top: 2px solid var(--line); border-left: 10px solid transparent; }
+  .hb > summary + .hi { border-top: 0; }
+  .hi.l-A { border-left-color: #4ADE80; } .hi.l-S { border-left-color: #FACC15; } .hi.l-D { border-left-color: #F87171; }
+  .hi-t { grid-column: 1; grid-row: 1; font-size: 13px; overflow-wrap: anywhere; }
+  .hi-id { grid-column: 1; grid-row: 2; font-family: var(--mono); font-size: 11px; opacity: .7; }
+  .hi select { grid-column: 2; grid-row: 1; max-width: 210px; padding: 6px; border: 3px solid var(--line); background: #fff; color: #000; font-size: 12px; font-weight: 700; }
+  .hi .sw { grid-column: 2; grid-row: 2; justify-self: end; }
+  .hb-del { margin: 10px 14px 14px; }
+  .hi-l { grid-column: 2; grid-row: 1 / 3; align-self: center; display: flex; align-items: center; gap: 8px; }
+  .hi-lab { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 190px; font-size: 11px; text-align: right; }
+  .hi-lab .lab-badge { margin-left: 0; }
+  .hi-none { opacity: .55; font-size: 11px; }
+  .hi-edit { flex: none; width: 32px; height: 32px; padding: 0; border-width: 3px; box-shadow: 2px 2px 0 var(--line); background: #fff; color: #000; }
+  .hi-edit svg { width: 16px; height: 16px; }
+  .snd-more { margin-top: 16px; }
+  .more-btn { width: 100%; margin-top: 16px; padding: 12px; justify-content: space-between; border: var(--b) dashed var(--line); background: transparent; box-shadow: none; font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+  .more-btn:hover { background: var(--yellow); color: #000; } .more-btn:active { transform: none; }
+  .mb-i { font-size: 18px; line-height: 1; }
 </style>
 </head>
 <body>
@@ -574,8 +660,9 @@
         <div class="panel-title"><span class="idx">02</span>Seed Results</div>
         <div class="panel-status"><span id="status">Idle</span> <span class="caret">&#9612;</span></div>
         <div class="head-right">
-          <button class="head-btn" id="linkBtn" type="button" aria-haspopup="dialog" title="Item link setup"><span class="label">Links</span></button>
-          <button class="head-btn" id="copyAllBtn" disabled><span class="label">Copy All</span></button>
+          <button class="head-btn" id="histBtn" type="button" aria-controls="hist"><span class="label">History</span></button>
+          <button class="head-btn" id="saveHistBtn" type="button" disabled><span class="label">Save</span></button>
+          <button class="head-btn" id="copyAllBtn" disabled><span class="label">Copy</span></button>
         </div>
       </div>
       <div class="stats">
@@ -623,6 +710,7 @@
         <button class="category-btn" data-category="metal" style="--i:2"><span><span class="n">03</span>Precious Metal Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
         <button class="category-btn" data-category="accessory" style="--i:3"><span><span class="n">04</span>Accessory Size</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
         <button class="category-btn" data-category="belt" style="--i:4"><span><span class="n">05</span>Belts &amp; Ropes</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="category-btn" data-category="warehouse" style="--i:5"><span><span class="n">06</span>Warehouse Weight</span><span class="arrow" aria-hidden="true">&rarr;</span></button>
       </div>
 
       <div class="cat-fill"><span class="sticker">Pick a type</span><p>Choose a category, enter both items, hit calculate. Need the thresholds? Click the <b>[?]</b> in the calculator header.</p></div>
@@ -693,6 +781,15 @@
           </div>
         </div>
 
+        <!-- Warehouse Weight -->
+        <div class="input-group" id="warehouse-input">
+          <div class="sides">
+            <div class="side"><div class="side-title">&larr; Left item</div><div class="input-item"><label for="warehouse-left">Warehouse Weight (g)</label><div class="field"><input type="number" id="warehouse-left" step="0.1" min="0" class="nav-input" data-row="0" data-col="0"><span class="unit-static">g</span></div></div></div>
+            <div class="side"><div class="side-title">Right item &rarr;</div><div class="input-item"><label for="warehouse-right">Warehouse Weight (g)</label><div class="field"><input type="number" id="warehouse-right" step="0.1" min="0" class="nav-input" data-row="0" data-col="1"><span class="unit-static">g</span></div></div></div>
+          </div>
+          <p class="conversion-note">Leave a side blank if its warehouse weight is missing &mdash; the comparison is then ignored.</p>
+        </div>
+
         <div class="button-group">
           <button class="primary" id="calculate"><span>Calculate Difference</span><span aria-hidden="true">&rarr;</span></button>
           <button id="reset">Reset</button>
@@ -755,6 +852,8 @@
       <div class="panel-head"><div class="panel-title"><span class="idx">02</span>Alarm Sound</div></div>
       <div class="panel-body">
         <div class="snd-grid" role="radiogroup" aria-label="Alarm sound"><div class="snd"><input type="radio" name="alarm" id="snd-digital" value="digital"><label for="snd-digital"><span class="snd-n">01</span><span class="snd-t">Digital<small>Triple beep</small></span></label><button type="button" class="play" data-play="digital" aria-label="Preview Digital">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-chime" value="chime"><label for="snd-chime"><span class="snd-n">02</span><span class="snd-t">Chime<small>Falling bells</small></span></label><button type="button" class="play" data-play="chime" aria-label="Preview Chime">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-bell" value="bell"><label for="snd-bell"><span class="snd-n">03</span><span class="snd-t">Bell<small>Deep strike</small></span></label><button type="button" class="play" data-play="bell" aria-label="Preview Bell">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-kalimba" value="kalimba"><label for="snd-kalimba"><span class="snd-n">04</span><span class="snd-t">Kalimba<small>Soft plucks</small></span></label><button type="button" class="play" data-play="kalimba" aria-label="Preview Kalimba">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-arcade" value="arcade"><label for="snd-arcade"><span class="snd-n">05</span><span class="snd-t">Arcade<small>Coin arpeggio</small></span></label><button type="button" class="play" data-play="arcade" aria-label="Preview Arcade">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-marimba" value="marimba"><label for="snd-marimba"><span class="snd-n">06</span><span class="snd-t">Marimba<small>Wooden run</small></span></label><button type="button" class="play" data-play="marimba" aria-label="Preview Marimba">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-horn" value="horn"><label for="snd-horn"><span class="snd-n">07</span><span class="snd-t">Air Horn<small>Loud chord</small></span></label><button type="button" class="play" data-play="horn" aria-label="Preview Air Horn">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-gentle" value="gentle"><label for="snd-gentle"><span class="snd-n">08</span><span class="snd-t">Gentle<small>Soft pulses</small></span></label><button type="button" class="play" data-play="gentle" aria-label="Preview Gentle">&#9654;</button></div></div>
+        <div class="snd-grid snd-more" id="sndMore" role="radiogroup" aria-label="More alarm sounds" hidden><div class="snd"><input type="radio" name="alarm" id="snd-ping" value="ping"><label for="snd-ping"><span class="snd-n">09</span><span class="snd-t">Soft Ping<small>Two gentle pings</small></span></label><button type="button" class="play" data-play="ping" aria-label="Preview Soft Ping">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-droplet" value="droplet"><label for="snd-droplet"><span class="snd-n">10</span><span class="snd-t">Droplet<small>Falling water drops</small></span></label><button type="button" class="play" data-play="droplet" aria-label="Preview Droplet">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-woodblock" value="woodblock"><label for="snd-woodblock"><span class="snd-n">11</span><span class="snd-t">Woodblock<small>Quiet wooden taps</small></span></label><button type="button" class="play" data-play="woodblock" aria-label="Preview Woodblock">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-harp" value="harp"><label for="snd-harp"><span class="snd-n">12</span><span class="snd-t">Harp<small>Rising arpeggio</small></span></label><button type="button" class="play" data-play="harp" aria-label="Preview Harp">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-crystal" value="crystal"><label for="snd-crystal"><span class="snd-n">13</span><span class="snd-t">Crystal<small>Glass tap</small></span></label><button type="button" class="play" data-play="crystal" aria-label="Preview Crystal">&#9654;</button></div><div class="snd"><input type="radio" name="alarm" id="snd-dingdong" value="dingdong"><label for="snd-dingdong"><span class="snd-n">14</span><span class="snd-t">Ding Dong<small>Two-tone doorbell</small></span></label><button type="button" class="play" data-play="dingdong" aria-label="Preview Ding Dong">&#9654;</button></div></div>
+        <button type="button" class="more-btn" id="sndMoreBtn" aria-expanded="false" aria-controls="sndMore"><span class="mb-t">More sounds</span><span class="mb-i" aria-hidden="true">+</span></button>
         <div class="vol"><label for="tVol">Volume</label><input type="range" id="tVol" min="0" max="100" value="70"><output id="tVolOut" for="tVol">70%</output></div>
       </div>
     </section>
@@ -766,6 +865,27 @@
 
 <button type="button" class="fab" id="toTop" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square" aria-hidden="true"><path d="M12 20V5M5 12l7-7 7 7"/></svg></button>
 
+<dialog class="lab-dlg" id="labDlg" aria-labelledby="labTitle">
+  <div class="ld-head"><span class="ld-n" id="labNum">01</span><div class="ld-t"><small>Label this item</small><b id="labTitle"></b></div><button type="button" class="ld-x" id="labX" aria-label="Close">&times;</button></div>
+  <div class="ld-body"><div class="ld-main" id="labMain"></div><div class="ld-sub" id="labSub" hidden></div></div>
+  <div class="ld-foot">
+    <button type="button" class="sw" id="labDisp" role="switch" aria-checked="false"><span class="sw-t"></span><span>Disputed</span></button>
+    <span class="ld-hint">Keys: A / S / D, then 1&ndash;9, 0 &middot; Esc closes</span>
+    <button type="button" class="ld-clear" id="labClear">Clear label</button>
+  </div>
+</dialog>
+<aside class="hist" id="hist" aria-label="Saved history">
+  <div class="hist-head">
+    <h2>History</h2>
+    <button type="button" class="head-btn" id="histImport"><span class="label">Import</span></button>
+    <button type="button" class="head-btn" id="histExport"><span class="label">Export</span></button>
+    <button type="button" class="head-btn" id="histClose" aria-label="Close history"><span class="label">Close</span></button>
+    <input type="search" class="hist-search" id="histQ" placeholder="Search title, ID, label (e.g. D2) or disputed" aria-label="Search history">
+    <input type="file" id="histFile" accept=".json,application/json">
+  </div>
+  <div class="hist-msg" id="histMsg" role="status" hidden></div>
+  <div class="hist-list" id="histList"></div>
+</aside>
 <aside class="notes" id="notes" aria-label="Notepad">
   <button type="button" class="nt-handle" id="notesTab" aria-expanded="false" aria-controls="notesCard">Notes</button>
   <div class="nt-card" id="notesCard">
@@ -798,15 +918,6 @@
   </div>
 </aside>
 
-<dialog class="rules-modal" id="linkModal" aria-labelledby="linkTitle">
-  <div class="modal-head"><h2 class="modal-title" id="linkTitle">Item Links</h2><button type="button" class="modal-close" id="linkClose" aria-label="Close link setup">&#10005;</button></div>
-  <div class="modal-body lk-body">
-       <input class="lk-in" id="linkIn" type="url" placeholder="https://outsourcing.logisticsmngmt.com/next/price-compare/job-label/sim-label?jobId=&hellip;" autocomplete="off" spellcheck="false" aria-label="Sample item link">
-    <div class="lk-row"><button type="button" class="primary" id="linkSave">Save</button><button type="button" id="linkReset">Reset</button><div class="lk-msg" id="linkMsg" role="status"></div></div>
-    <div class="lk-jobs" id="linkJobs"></div>
-  </div>
-</dialog>
-
 <dialog class="rules-modal" id="rulesModal" aria-labelledby="rulesTitle">
   <div class="modal-head"><h2 class="modal-title" id="rulesTitle">Calculation Rules</h2><button type="button" class="modal-close" id="rulesClose" aria-label="Close rules">&#10005;</button></div>
   <div class="modal-body">
@@ -835,6 +946,12 @@
           <div class="rule-condition">Thickness: 0.9 &lt; Right / Left &lt; 1.1</div>
           <div class="rule-condition">Length: difference &lt; 30cm and 0.8 &lt; Right / Left &lt; 1.2 &rarr; Same</div>
           <p class="conversion-note">Supports automatic inch conversion (1 inch = 2.54 cm)</p>
+        </div>
+        <div class="rule" data-rule="warehouse">
+          <div class="rule-title"><span class="n">06</span>Warehouse Weight<span class="rule-badge">Selected</span></div>
+          <div class="rule-condition">Left &lt; 1000g: Right &ge; Left &times; 85% &rarr; Same, otherwise Not Same</div>
+          <div class="rule-condition">Left &ge; 1000g: Right &ge; Left &minus; 150g &rarr; Same, otherwise Not Same</div>
+          <div class="rule-condition">Missing on either side &rarr; comparison ignored</div>
         </div>
   </div>
 </dialog>
@@ -870,7 +987,7 @@
   const emptyState = $('emptyState'), seedList = $('seedList'), status = $('status');
   const resultsPanel = document.querySelector('.results');
 
-  let seeds = [], busy = false, lastStatus = 'Idle', fieldSeq = 0;
+  let seeds = [], busy = false, lastStatus = 'Idle', fieldSeq = 0, curTotal = 0, curMulti = false;
   const pad = n => String(n).padStart(2, '0');
   const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
 
@@ -1074,7 +1191,7 @@
   }
 
   function render(total, found, multi) {
-    seeds = found;
+    seeds = found; curTotal = total; curMulti = multi; persist();
     const uniq = found.filter(x => !x.isDup).length;
     const rate = total ? (uniq / total) * 100 : 0;
     countTo(productCount, total);
@@ -1084,7 +1201,7 @@
     status.textContent = lastStatus;
     resultsPanel.classList.remove('scanning'); void resultsPanel.offsetWidth; resultsPanel.classList.add('scanning');
     rateBar.style.width = Math.min(rate, 100) + '%';
-    copyAllBtn.disabled = found.length === 0;
+    copyAllBtn.disabled = saveHistBtn.disabled = found.length === 0;
 
     if (!found.length) {
       setEmpty('none');
@@ -1097,17 +1214,18 @@
     seedList.hidden = false;
     let n = 0, g = 0;
     seedList.innerHTML = found.map((seed, i) => { if (!seed.isDup) { n++; g = i; } return `
-      <article class="seed${seed.isDup ? ' dup' : ''}" style="--i:${Math.min(i, 12)}"${seed.isDup ? ` data-g="${g}" hidden` : ''}>
+      <article class="seed${seed.isDup ? ' dup' : ''}${seed.lab ? ' lab-' + seed.lab[0] : ''}" style="--i:${Math.min(i, 12)}"${seed.isDup ? ` data-g="${g}" hidden` : ''}>
         <a class="seed-num" data-link="${i}" target="_blank" rel="noopener noreferrer">${seed.isDup ? '&#8627;' : pad(n)}</a>
         <div class="seed-body">
           ${thumbHtml(seed, i)}
           <div class="seed-main">
-            <div class="seed-tag">${seed.isDup ? 'Duplicate of ' + pad(n) : 'Seed item'}${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}</div>
+            <div class="seed-tag">${seed.isDup ? 'Duplicate of ' + pad(n) : 'Seed item'}${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}<span class="lab-badges">${badgeHtml(seed)}</span></div>
             <div class="title">${escapeHtml(seed.productTitle)}</div>
             <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
             <div class="seed-actions">
               <button data-copy-title="${i}"><span class="label">Copy Title</span></button>
               <button data-copy-id="${i}"><span class="label">Copy ID</span></button>
+              <button type="button" class="lab-btn" data-label="${i}" aria-haspopup="dialog"><span class="label">Label</span></button>
               ${seed.dupN ? `<button type="button" class="dup-btn" data-dup="${i}" data-n="${seed.dupN}" aria-expanded="false"><span class="label">${plural(seed.dupN, 'duplicate')}</span><span class="dd" aria-hidden="true"></span></button>` : ''}
             </div>
           </div>
@@ -1123,7 +1241,6 @@
   // ---------- item links ----------
   // jobId / batchId / dataId come from the JSON. jobType / jobCType don't, so they're learned from a pasted real link,
   // remembered per job, and fall back to the last-used pair (flagged "?") for jobs not seen before.
-  const linkBtn = $('linkBtn'), linkDlg = $('linkModal'), linkIn = $('linkIn'), linkMsg = $('linkMsg'), linkJobs = $('linkJobs');
   const LK = 'seed-link-cfg';
   const LK_DEFAULT = { base: 'https://outsourcing.logisticsmngmt.com/next/price-compare/job-label/sim-label', def: { t: '12', c: '137' }, jobs: {} };
   const okPair = v => v && typeof v.t === 'string' && typeof v.c === 'string' && v.t && v.c;
@@ -1162,67 +1279,12 @@
       a.href = l.href; a.removeAttribute('aria-disabled');
       const g = l.st === 'guess';
       a.classList.toggle('guess', g);
-      a.title = g ? 'Open this item \u2014 jobType/jobCType assumed for this job (confirm under Links)' : 'Open this item on the platform';
+      a.title = g ? 'Open this item \u2014 jobType/jobCType assumed for this job' : 'Open this item on the platform';
       if (g) guessJobs.add(s.jobId);
     });
     lastGuess = guessJobs.size;
-    linkBtn.classList.toggle('warn', lastGuess > 0);
-    linkBtn.title = lastGuess ? `jobType/jobCType assumed for ${plural(lastGuess, 'job')} \u2014 confirm here` : 'Item link setup';
     return lastGuess;
   }
-
-  function parseSampleLink(raw) {
-    let u;
-    try { u = new URL(raw.trim()); } catch (e) { throw new Error('That isn\u2019t a full link \u2014 copy it from the address bar (starts with https://).'); }
-    if (!/^https?:$/.test(u.protocol)) throw new Error('Only http(s) links are accepted.');
-    const p = u.searchParams, t = p.get('jobType'), c = p.get('jobCType');
-    if (!t || !c) throw new Error('No jobType / jobCType in that link. Use the link of an opened item.');
-    return { base: u.origin + u.pathname, t, c, j: p.get('jobId') };
-  }
-
-  function renderLinkJobs() {
-    const jobs = new Map();
-    seeds.forEach(s => { if (s.jobId != null && !jobs.has(s.jobId)) jobs.set(s.jobId, linkFor(s)); });
-    linkJobs.hidden = false;
-    if (!jobs.size) { linkJobs.innerHTML = '<div class="lk-job"><span>Scan a response to see its jobs here.</span></div>'; return; }
-    linkJobs.innerHTML = [...jobs].map(([j, l]) => l
-      ? `<div class="lk-job${l.st === 'guess' ? ' guess' : ''}"><span>Job ${escapeHtml(String(j))} \u2192 ${escapeHtml(l.pair.t)} / ${escapeHtml(l.pair.c)}</span><b>${l.st === 'guess' ? 'Assumed \u2014 paste a link from this job' : 'Confirmed'}</b></div>`
-      : `<div class="lk-job"><span>Job ${escapeHtml(String(j))}</span><b>Missing batch/data ID</b></div>`).join('');
-  }
-
-  function setLinkMsg(text, err) { linkMsg.textContent = text; linkMsg.classList.toggle('err', !!err && !!text); }
-
-  $('linkSave').addEventListener('click', () => {
-    try {
-      const r = parseSampleLink(linkIn.value);
-      lcfg.base = r.base; lcfg.def = { t: r.t, c: r.c };
-      if (r.j) {
-        delete lcfg.jobs[r.j]; lcfg.jobs[r.j] = { t: r.t, c: r.c };
-        const ks = Object.keys(lcfg.jobs); if (ks.length > 200) delete lcfg.jobs[ks[0]];
-      }
-      saveLinkCfg(); refreshLinks(); renderLinkJobs();
-      setLinkMsg(r.j ? `Saved \u2014 job ${r.j} uses ${r.t} / ${r.c}, and it\u2019s the new default for unseen jobs.` : `Saved as the default for jobs not seen yet (${r.t} / ${r.c}).`, false);
-      linkIn.value = '';
-    } catch (err) { setLinkMsg(err.message, true); }
-  });
-  linkIn.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('linkSave').click(); } });
-  $('linkReset').addEventListener('click', () => {
-    lcfg = JSON.parse(JSON.stringify(LK_DEFAULT));
-    try { localStorage.removeItem(LK); } catch (e) {}
-    refreshLinks(); renderLinkJobs(); setLinkMsg('Reset to built-in defaults.', false);
-  });
-  linkBtn.addEventListener('click', () => { setLinkMsg('', false); renderLinkJobs(); linkDlg.showModal(); linkIn.focus(); });
-  let linkClosing = false;
-  const closeLinkDlg = () => {
-    if (linkClosing || !linkDlg.open) return;
-    linkClosing = true; linkDlg.classList.add('closing');
-    const done = () => { if (!linkClosing) return; linkClosing = false; linkDlg.classList.remove('closing'); linkDlg.close(); };
-    linkDlg.addEventListener('animationend', e => { if (e.target === linkDlg) done(); }, { once: true });
-    setTimeout(done, 220);
-  };
-  $('linkClose').addEventListener('click', closeLinkDlg);
-  linkDlg.addEventListener('click', e => { if (e.target === linkDlg) closeLinkDlg(); });
-  linkDlg.addEventListener('cancel', e => { e.preventDefault(); closeLinkDlg(); });
 
   // Broken thumbnails: try the next image, otherwise fall back to a placeholder (error events don't bubble, so capture)
   seedList.addEventListener('error', e => {
@@ -1336,7 +1398,7 @@
     const dupTxt = dupN ? ` ${plural(dupN, 'repeated duplicate')} hidden.` : '';
     const where = active.length > 1 ? ` across ${plural(ok, 'input')}` : '';
     const skip = skipped ? ` ${plural(skipped, 'empty box').replace('boxs', 'boxes')} ignored.` : '';
-    const lk = lastGuess ? ` Links for ${plural(lastGuess, 'job')} use assumed types \u2014 confirm under Links.` : '';
+    const lk = '';
     if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(uniq, 'seed')} kept.${dupTxt} Failed: ${names}. See the error under each box.${skip}`, 'error');
     else showNotice(`Scan complete \u2014 ${plural(uniq, 'seed')} found${where}.${dupTxt}${skip}${lk}`, 'success');
   }
@@ -1350,7 +1412,8 @@
     productCount.textContent = '\u2014'; seedCount.textContent = '\u2014'; seedRate.textContent = '\u2014';
     rateBar.style.width = '0';
     lastStatus = 'Idle'; status.textContent = lastStatus;
-    copyAllBtn.disabled = true;
+    copyAllBtn.disabled = saveHistBtn.disabled = true;
+    try { localStorage.removeItem(SK); } catch (e) {}
     seedList.hidden = true; seedList.innerHTML = '';
     refreshLinks();
     setEmpty('idle');
@@ -1368,6 +1431,176 @@
     addField(JSON.stringify(example, null, 2));
     clearNotice();
     runBatch();
+  });
+
+
+  // ---------- labels ----------
+  const OPTS = [['A', 'Same'], ['S', 'Same But Color Different'], ['D', 'Different']];
+  const SUBS = [['D1', 'Category not same'], ['D2', 'Appearance not same'], ['D3', 'Weight not same'], ['D4', 'Brand not same'], ['D5', 'Size not same'],
+    ['D6', 'Material not same'], ['D7', 'Quantity not same'], ['D8', 'Set content not same'], ['D9', 'Inconsistent function'], ['D0', 'Others']];
+  const LN = {}; [...OPTS, ...SUBS].forEach(([c, n]) => LN[c] = n);
+  const badgeHtml = s => (s.lab ? `<span class="lab-badge">${s.lab}</span>` : '') + (s.disp ? '<span class="lab-badge b-X">DISPUTED</span>' : '');
+  const labDlg = $('labDlg'), labMain = $('labMain'), labSub = $('labSub'), labDisp = $('labDisp');
+  let labObj = null, labCb = null, labTimer = 0, labClosing = false;
+  const optBtn = (c, n, key, cls, on) => `<button type="button" class="ld-opt ${cls}${on ? ' on' : ''}" data-set="${c}" aria-pressed="${on}"><kbd>${key}</kbd><span>${n}</span></button>`;
+  function renderLab() {
+    const cur = labObj.lab || '';
+    labMain.innerHTML = OPTS.map(([c, n]) => optBtn(c, n, c, 'o-' + c, cur[0] === c)).join('');
+    labSub.hidden = cur[0] !== 'D';
+    labSub.innerHTML = SUBS.map(([c, n]) => optBtn(c, n, c[1], 'o-D', cur === c)).join('');
+    labDisp.setAttribute('aria-checked', String(!!labObj.disp));
+  }
+  function applyCard(i) {
+    const s = seeds[i], art = seedList.querySelector(`[data-label="${i}"]`).closest('.seed');
+    art.className = art.className.replace(/\blab-\S+/g, '').trim() + (s.lab ? ' lab-' + s.lab[0] : '');
+    art.querySelector('.lab-badges').innerHTML = badgeHtml(s);
+    persist();
+  }
+  // Opens the label modal for any item object ({lab, disp}); cb runs after every change
+  function openLab(obj, num, title, cb) {
+    labObj = obj; labCb = cb; labClosing = false; labDlg.classList.remove('closing');
+    $('labNum').textContent = num; $('labTitle').textContent = title;
+    renderLab(); labDlg.showModal();
+  }
+  function closeLab() {
+    if (!labDlg.open || labClosing) return;
+    labClosing = true; clearTimeout(labTimer);
+    const done = () => { labClosing = false; labDlg.classList.remove('closing'); labDlg.close(); };
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) done(); else { labDlg.classList.add('closing'); setTimeout(done, 180); }
+  }
+  function setLab(lab, close) {
+    if (!labObj || labClosing || (lab === 'D' && (labObj.lab || '')[0] === 'D')) return;
+    labObj.lab = lab; labCb(); renderLab();
+    if (close) { clearTimeout(labTimer); labTimer = setTimeout(closeLab, 160); }
+  }
+  seedList.addEventListener('click', e => {
+    const b = e.target.closest('[data-label]');
+    if (!b) return;
+    const i = +b.dataset.label;
+    openLab(seeds[i], b.closest('.seed').querySelector('.seed-num').textContent.trim(), seeds[i].productTitle, () => applyCard(i));
+  });
+  labDlg.addEventListener('click', e => {
+    if (e.target === labDlg) { closeLab(); return; }
+    const o = e.target.closest('[data-set]');
+    if (o) setLab(o.dataset.set, o.dataset.set !== 'D');
+  });
+  labDisp.addEventListener('click', () => { if (!labObj) return; labObj.disp = !labObj.disp; labCb(); renderLab(); });
+  $('labClear').addEventListener('click', () => setLab('', false));
+  $('labX').addEventListener('click', closeLab);
+  labDlg.addEventListener('cancel', e => { e.preventDefault(); closeLab(); });
+  labDlg.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || !labObj || labClosing) return;
+    const k = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+    if (k === 'A' || k === 'S' || k === 'D') { e.preventDefault(); setLab(k, k !== 'D'); }
+    else if (/^\d$/.test(k) && (labObj.lab || '')[0] === 'D') { e.preventDefault(); setLab('D' + k, true); }
+    else if (k === 'Backspace' || k === 'Delete') { e.preventDefault(); setLab('', false); }
+  });
+  labDlg.addEventListener('close', () => { clearTimeout(labTimer); labObj = null; labCb = null; });
+
+  // ---------- keep the current scan across a closed browser ----------
+  const SK = 'seed-session';
+  function persist() {
+    try {
+      localStorage.setItem(SK, JSON.stringify({ total: curTotal, multi: curMulti, seeds: seeds.map(s => ({
+        dataId: s.dataId, jobId: s.jobId, batchId: s.batchId, jobType: s.jobType, jobCType: s.jobCType, productTitle: s.productTitle,
+        images: (s.images || []).filter(u => !/^data:/.test(u)), src: s.src, isDup: !!s.isDup, k: s.k, dupN: s.dupN || 0, lab: s.lab || '', disp: !!s.disp })) }));
+    } catch (e) {}
+  }
+  queueMicrotask(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(SK));
+      if (!d || !Array.isArray(d.seeds) || !d.seeds.length) return;
+      const list = d.seeds.map(s => ({ ...s, images: Array.isArray(s.images) ? s.images : [], bad: new Set() }));
+      render(+d.total || list.length, list, !!d.multi);
+      showNotice(`Restored your last scan \u2014 ${plural(list.filter(s => !s.isDup).length, 'item')}.`, 'success');
+    } catch (e) {}
+  });
+
+  // ---------- history ----------
+  const HK = 'seed-history', VALID = new Set(Object.keys(LN));
+  const histEl = $('hist'), histList = $('histList'), histQ = $('histQ'), histMsg = $('histMsg'), histFile = $('histFile'), saveHistBtn = $('saveHistBtn');
+  let hist = [], saveUntil = 0;
+  try { const a = JSON.parse(localStorage.getItem(HK)); if (Array.isArray(a)) hist = a; } catch (e) {}
+  const setH = (m, err) => { histMsg.textContent = m; histMsg.hidden = !m; histMsg.classList.toggle('err', !!err); };
+  const saveH = () => { try { localStorage.setItem(HK, JSON.stringify(hist)); return true; } catch (e) { setH('Could not save \u2014 browser storage is full or blocked. Export your history to keep a copy.', true); return false; } };
+  const hay = x => [x.title, x.id, x.lab, LN[x.lab] || '', x.disp ? 'disputed' : '', x.dup ? 'duplicate' : ''].join(' ').toLowerCase();
+  const chips = b => {
+    const c = {}; let dn = 0;
+    b.items.forEach(x => { if (x.lab) c[x.lab[0]] = (c[x.lab[0]] || 0) + 1; if (x.disp) dn++; });
+    return `<i class="ch">${plural(b.items.length, 'item')}</i>` + ['A', 'S', 'D'].filter(k => c[k]).map(k => `<i class="ch c${k}">${k} ${c[k]}</i>`).join('') + (dn ? `<i class="ch cX">${dn} disputed</i>` : '');
+  };
+  const histLab = x => x.lab || x.disp ? badgeHtml(x) + (x.lab ? `<span>${LN[x.lab]}</span>` : '') : '<span class="hi-none">Unlabeled</span>';
+  function renderHist() {
+    const q = histQ.value.trim().toLowerCase();
+    const html = hist.map((b, bi) => {
+      const rows = b.items.map((x, xi) => [x, xi]).filter(([x]) => !q || hay(x).includes(q));
+      if (!rows.length) return '';
+      return `<details class="hb"${q ? ' open' : ''}><summary><span class="hb-n">${pad(hist.length - bi)}</span><span class="hb-m"><b>${escapeHtml(new Date(b.t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))}</b><span class="hb-c">${chips(b)}</span></span></summary>
+        ${rows.map(([x, xi]) => `<div class="hi${x.lab ? ' l-' + x.lab[0] : ''}"><div class="hi-t">${escapeHtml(x.title)}</div><div class="hi-id">ID ${escapeHtml(x.id)}${x.dup ? ' \u00b7 duplicate' : ''}</div>
+          <div class="hi-l"><span class="hi-lab">${histLab(x)}</span><button type="button" class="hi-edit" data-b="${bi}" data-x="${xi}" data-edit aria-label="Edit label" title="Edit label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></button></div></div>`).join('')}
+        <button type="button" class="hb-del" data-del="${bi}">Delete batch</button></details>`;
+    }).join('');
+    histList.innerHTML = html || `<div class="hist-empty">${hist.length ? 'No items match your search.' : 'Nothing saved yet. Label some items, then press Save.'}</div>`;
+  }
+  histList.addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]');
+    if (ed) {
+      const b = hist[ed.dataset.b], x = b && b.items[ed.dataset.x];
+      if (!x) return;
+      const row = ed.closest('.hi'), box = ed.closest('.hb');
+      openLab(x, pad(+ed.dataset.x + 1), x.title, () => {
+        row.className = 'hi' + (x.lab ? ' l-' + x.lab[0] : '');
+        row.querySelector('.hi-lab').innerHTML = histLab(x);
+        box.querySelector('.hb-c').innerHTML = chips(b);
+        saveH();
+      });
+      return;
+    }
+    const d = e.target.closest('[data-del]');
+    if (!d || !confirm('Delete this saved batch? This can\u2019t be undone.')) return;
+    hist.splice(+d.dataset.del, 1); saveH(); renderHist();
+  });
+  histQ.addEventListener('input', renderHist);
+  saveHistBtn.addEventListener('click', () => {
+    if (!seeds.length) return;
+    if (Date.now() < saveUntil) { showNotice('Already saved \u2014 wait a few seconds before saving again.'); return; }
+    const items = seeds.map(s => ({ title: s.productTitle, id: String(s.dataId), lab: s.lab || '', disp: !!s.disp, dup: !!s.isDup, src: s.src }));
+    hist.unshift({ id: Date.now(), t: new Date().toISOString(), items });
+    if (!saveH()) { hist.shift(); return; }
+    saveUntil = Date.now() + 5000;
+    const lb = saveHistBtn.querySelector('.label'); lb.textContent = 'Saved'; saveHistBtn.disabled = true;
+    setTimeout(() => { lb.textContent = 'Save'; saveHistBtn.disabled = !seeds.length; }, 5000);
+    const u = items.filter(x => !x.lab).length;
+    showNotice(`Saved ${plural(items.length, 'item')} to history${u ? ` (${u} unlabeled)` : ''}.`, 'success'); renderHist();
+  });
+  const closeHist = () => histEl.classList.remove('open');
+  $('histBtn').addEventListener('click', () => { if (histEl.classList.contains('open')) { closeHist(); return; } renderHist(); setH(''); histEl.classList.add('open'); histQ.focus(); });
+  $('histClose').addEventListener('click', closeHist);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && histEl.classList.contains('open') && !labDlg.open) closeHist(); });
+  $('histExport').addEventListener('click', () => {
+    if (!hist.length) { setH('Nothing to export yet.', true); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'item-check', v: 1, batches: hist }, null, 2)], { type: 'application/json' }));
+    a.download = 'item-check-history-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setH(`Exported ${plural(hist.length, 'batch')}.`);
+  });
+  $('histImport').addEventListener('click', () => histFile.click());
+  histFile.addEventListener('change', async () => {
+    const f = histFile.files[0]; histFile.value = '';
+    if (!f) return;
+    try {
+      const d = JSON.parse(await f.text()), arr = Array.isArray(d) ? d : d.batches;
+      if (!Array.isArray(arr)) throw new Error('bad');
+      const ids = new Set(hist.map(b => b.id)); let n = 0;
+      arr.forEach(b => {
+        if (!b || !Array.isArray(b.items) || ids.has(b.id)) return;
+        const items = b.items.filter(x => x && typeof x === 'object').map(x => ({ title: String(x.title ?? ''), id: String(x.id ?? ''), lab: VALID.has(x.lab) ? x.lab : '', disp: !!x.disp, dup: !!x.dup, src: x.src }));
+        hist.push({ id: Number(b.id) || Date.now() + n, t: typeof b.t === 'string' ? b.t : new Date().toISOString(), items }); ids.add(b.id); n++;
+      });
+      hist.sort((a, b) => b.id - a.id); saveH(); renderHist();
+      setH(`Imported ${plural(n, 'batch')}${n < arr.length ? `; ${arr.length - n} skipped (already here or invalid)` : ''}.`);
+    } catch (e) { setH('That file isn\u2019t a valid history export.', true); }
   });
 
   // ---------- files ----------
@@ -1571,7 +1804,7 @@
   $('#calculate').addEventListener('click', () => {
     clearCalcNotice();
     const cat = $('.category-btn.active').dataset.category;
-    let ok = false, detail = '';
+    let ok = false, detail = '', ignored = false;
     const n = x => +x.toFixed(2);
 
     switch (cat) {
@@ -1609,6 +1842,18 @@
         ok = ratio > 0.9 && ratio < 1.1;
         break;
       }
+      case 'warehouse': {
+        const l = getVal('#warehouse-left'), r = getVal('#warehouse-right');
+        if (!(l > 0 && r > 0)) {
+          ignored = true;
+          detail = `Left item=${l > 0 ? n(l) + ' g' : 'missing'}, Right item=${r > 0 ? n(r) + ' g' : 'missing'} \u2192 warehouse weight is missing on one side, so this comparison is ignored`;
+          break;
+        }
+        const big = l >= 1000, need = big ? l - 150 : l * 0.85;
+        ok = r >= need - 1e-9;
+        detail = `Left item=${n(l)} g (${big ? '\u2265' : '<'} 1000 g), Right item=${n(r)} g \u2192 Need Right item \u2265 ${n(need)} g (${big ? 'Left \u2212 150 g' : 'Left \u00d7 85%'})`;
+        break;
+      }
       case 'belt': {
         // Width
         const lw = getVal('#belt-left-width'), rw = getVal('#belt-right-width');
@@ -1644,9 +1889,9 @@
       }
     }
 
-    $('#result-text').textContent = ok ? 'Same' : 'Not Same';
-    $('#result-text').className = ok ? 'result-big same' : 'result-big different';
-    $('#result-explanation').textContent = ok ? 'Left item and right item data are within the allowed difference range' : 'Data exceeds the allowed difference range';
+    $('#result-text').textContent = ignored ? 'Ignored' : ok ? 'Same' : 'Not Same';
+    $('#result-text').className = ignored ? 'result-big' : ok ? 'result-big same' : 'result-big different';
+    $('#result-explanation').textContent = ignored ? 'Warehouse weight is missing on one side, so it is not compared' : ok ? 'Left item and right item data are within the allowed difference range' : 'Data exceeds the allowed difference range';
     $('#calculation-details').textContent = detail;
     playResult();
   });
@@ -1732,8 +1977,14 @@
     kalimba:(c,d,t)=>{for(let k=0;k<2;k++)[392,587.3,493.9,784].forEach((f,i)=>{const s=t+k*1.1+i*.22;env(c,d,{f,t:s,d:.9,v:.3,a:.004});env(c,d,{f:f*4,t:s,d:.12,v:.06,a:.002});});return 2.2;},
     arcade:(c,d,t)=>{for(let k=0;k<2;k++)[523.25,659.25,784,1046.5,1318.5].forEach((f,i)=>env(c,d,{type:'square',f,t:t+k*.6+i*.09,d:.1,v:.2}));return 1.5;},
     marimba:(c,d,t)=>{[659.25,784,880,784,659.25,987.8].forEach((f,i)=>env(c,d,{type:'triangle',f,t:t+i*.15,d:.4,v:.35}));return 1.8;},
-    horn:(c,d,t)=>{for(let k=0;k<2;k++)[233,293.7,349.2].forEach(f=>env(c,d,{type:'sawtooth',f,t:t+k*1.2,d:1,v:.14,a:.03,hold:.8}));return 2.6;},
-    gentle:(c,d,t)=>{for(let k=0;k<3;k++){env(c,d,{f:440,t:t+k*.55,d:.7,v:.3,a:.06});env(c,d,{f:660,t:t+k*.55,d:.7,v:.15,a:.06});}return 2.4;}
+    horn:(c,d,t)=>{[233,293.7,349.2].forEach(f=>env(c,d,{type:'sawtooth',f,t,d:1,v:.14,a:.03,hold:.8}));return 1.6;},
+    gentle:(c,d,t)=>{for(let k=0;k<3;k++){env(c,d,{f:440,t:t+k*.55,d:.7,v:.3,a:.06});env(c,d,{f:660,t:t+k*.55,d:.7,v:.15,a:.06});}return 2.4;},
+    ping:(c,d,t)=>{[880,1318.5].forEach((f,i)=>{env(c,d,{f,t:t+i*.45,d:.9,v:.28,a:.005});env(c,d,{f:f*2,t:t+i*.45,d:.25,v:.06,a:.003});});return 1.6;},
+    droplet:(c,d,t)=>{[1400,1180,990].forEach((f,i)=>env(c,d,{f,f2:f*.45,t:t+i*.32,d:.18,v:.32,a:.004}));return 1.4;},
+    woodblock:(c,d,t)=>{for(let i=0;i<4;i++){env(c,d,{type:'triangle',f:i%2?660:820,t:t+i*.22,d:.1,v:.4,a:.002});env(c,d,{f:i%2?1320:1640,t:t+i*.22,d:.05,v:.1,a:.002});}return 1.3;},
+    harp:(c,d,t)=>{[392,493.9,587.3,784,987.8].forEach((f,i)=>{env(c,d,{f,t:t+i*.13,d:1,v:.24,a:.004});env(c,d,{f:f*2,t:t+i*.13,d:.3,v:.06,a:.003});});return 2;},
+    crystal:(c,d,t)=>{[0,.75].forEach(o=>[1760,2349.3,3136].forEach((f,i)=>env(c,d,{f,t:t+o,d:1.5/(1+i*.5),v:.2/(1+i*.6),a:.003})));return 2.5;},
+    dingdong:(c,d,t)=>{[659.25,523.25].forEach((f,i)=>{env(c,d,{f,t:t+i*.55,d:1.3,v:.3,a:.01});env(c,d,{f:f*2.01,t:t+i*.55,d:.5,v:.08,a:.01});});return 2.2;}
   };
   const cur=()=>(radios.find(r=>r.checked)||radios[0]).value;
   const gain=()=>Math.pow(vol.value/100,2);
@@ -1809,7 +2060,12 @@
     f.addEventListener('focus',()=>f.select());
   });
   presets.forEach(b=>b.addEventListener('click',()=>{writeFields(+b.dataset.preset);total=remaining=readSecs()*1000;save();render();}));
-  radios.forEach(r=>r.addEventListener('change',save));
+  const more=$('sndMore'), moreBtn=$('sndMoreBtn');
+  const setMore=on=>{more.hidden=!on;moreBtn.setAttribute('aria-expanded',String(on));
+    moreBtn.querySelector('.mb-t').textContent=on?'Fewer sounds':more.querySelector('input:checked')?'More sounds (one selected)':'More sounds';
+    moreBtn.querySelector('.mb-i').textContent=on?'\u2212':'+';};
+  moreBtn.addEventListener('click',()=>setMore(more.hidden));
+  radios.forEach(r=>r.addEventListener('change',()=>{save();setMore(!more.hidden);}));
   document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>{const r=document.getElementById('snd-'+b.dataset.play);r.checked=true;save();preview(b.dataset.play);}));
   vol.addEventListener('input',()=>{volOut.textContent=vol.value+'%';if(master)master.gain.value=gain();});
   vol.addEventListener('change',save);
@@ -1820,6 +2076,7 @@
   const secs=Number.isFinite(saved.secs)&&saved.secs>0?Math.min(MAX,saved.secs):80;
   writeFields(secs);total=remaining=secs*1000;
   (radios.find(r=>r.value===saved.alarm)||radios[0]).checked=true;
+  setMore(!!more.querySelector('input:checked'));
   if(Number.isFinite(saved.vol)){vol.value=saved.vol;volOut.textContent=saved.vol+'%';}
   render();
 })();
