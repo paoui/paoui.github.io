@@ -530,9 +530,12 @@
   /* Labels, modal, history */
   .lab-badge { display: inline-block; margin-left: 8px; padding: 1px 7px; border: 2px solid #000; background: #000; color: #fff; font-size: 11px; letter-spacing: .08em; }
   .lab-badge.b-X { background: #FF6B6B; color: #000; }
+  .lab-badge.b-H { background: #fff; color: #000; border-style: dashed; font-size: 10px; letter-spacing: .1em; }
   .seed[class*="lab-"] { color: #000; }
-  .seed.lab-A { background: #BBF7D0; } .seed.lab-S { background: #FEF08A; } .seed.lab-D { background: #FECACA; }
-  .seed.lab-A .seed-num { background: #4ADE80; } .seed.lab-S .seed-num { background: #FACC15; } .seed.lab-D .seed-num { background: #F87171; }
+  /* Label tints follow the Colors palette: A = Main, S = Highlight, D = Extra. The row is a light wash of the accent so black text always reads. */
+  .seed.lab-A { --tint: var(--red); } .seed.lab-S { --tint: var(--yellow); } .seed.lab-D { --tint: var(--violet); }
+  .seed[class*="lab-"] { background: var(--tint); background: color-mix(in srgb, var(--tint) 40%, #fff); }
+  .seed[class*="lab-"] .seed-num { background: var(--tint); }
   .seed[class*="lab-"] button:not(.dup-btn) { background: #fff; color: #000; }
   .seed[class*="lab-"] button:not(.dup-btn):hover { background: var(--yellow); }
   .seed[class*="lab-"] .dup-btn { color: #000; }
@@ -593,10 +596,10 @@
   .hb-m { flex: 1; min-width: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; } .hb-m b { font-size: 13px; }
   .hb-c { display: flex; flex-wrap: wrap; gap: 6px; }
   .ch { padding: 1px 6px; border: 2px solid var(--line); background: var(--card); font-style: normal; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
-  .ch.cA { background: #4ADE80; color: #000; } .ch.cS { background: #FACC15; color: #000; } .ch.cD { background: #F87171; color: #000; } .ch.cX { background: var(--red); color: #000; }
+  .ch.cA { background: var(--red); color: #000; } .ch.cS { background: var(--yellow); color: #000; } .ch.cD { background: var(--violet); color: #000; } .ch.cX { background: var(--red); color: #000; }
   .hi { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 14px; border-top: 2px solid var(--line); border-left: 10px solid transparent; }
   .hb > summary + .hi { border-top: 0; }
-  .hi.l-A { border-left-color: #4ADE80; } .hi.l-S { border-left-color: #FACC15; } .hi.l-D { border-left-color: #F87171; }
+  .hi.l-A { border-left-color: var(--red); } .hi.l-S { border-left-color: var(--yellow); } .hi.l-D { border-left-color: var(--violet); }
   .hi-t { grid-column: 1; grid-row: 1; font-size: 13px; overflow-wrap: anywhere; }
   .hi-id { grid-column: 1; grid-row: 2; font-family: var(--mono); font-size: 11px; opacity: .7; }
   .hi select { grid-column: 2; grid-row: 1; max-width: 210px; padding: 6px; border: 3px solid var(--line); background: #fff; color: #000; font-size: 12px; font-weight: 700; }
@@ -612,6 +615,39 @@
   .more-btn { width: 100%; margin-top: 16px; padding: 12px; justify-content: space-between; border: var(--b) dashed var(--line); background: transparent; box-shadow: none; font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
   .more-btn:hover { background: var(--yellow); color: #000; } .more-btn:active { transform: none; }
   .mb-i { font-size: 18px; line-height: 1; }
+
+  /* History: label filters, multi-select, duplicate groups */
+  .hist-filters { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+  .hist-filters button { padding: 5px 10px; font-size: 11px; letter-spacing: .06em; border-width: 3px; background: #fff; color: #000; box-shadow: 2px 2px 0 #000; }
+  .hist-filters button:hover { background: var(--yellow); }
+  .hist-filters button:active { box-shadow: none; }
+  .hist-filters button[aria-pressed="true"], .hist-filters button[aria-pressed="true"]:hover { background: #000; color: #fff; box-shadow: none; transform: translate(2px, 2px); }
+  .hist-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 16px; background: var(--yellow); color: #000; border-bottom: 3px solid var(--line); }
+  .hist-bar b { margin-right: auto; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+  .hist-bar button { padding: 5px 10px; font-size: 11px; border-width: 3px; background: #fff; color: #000; box-shadow: 2px 2px 0 #000; }
+  .hist-bar button:hover { background: var(--violet); }
+  .hist-bar button:active { box-shadow: none; }
+  .hist-bar button.danger { background: var(--red); }
+  .hist-bar button.danger:hover { filter: brightness(1.08); background: var(--red); }
+  .hist-bar button:disabled:hover { background: #fff; color: #000; }
+  .hist-bar button.danger:disabled:hover { background: var(--red); filter: none; }
+  .hb-sel { display: none; align-items: center; justify-content: center; padding: 0 14px; border-right: var(--b) solid var(--line); background: var(--card); cursor: pointer; }
+  .hist.selecting .hb-sel { display: flex; }
+  .hb-sel input { width: 22px; height: 22px; margin: 0; accent-color: var(--inv); cursor: pointer; }
+  .hb-sel input:focus-visible { outline: 3px solid var(--line); outline-offset: 3px; }
+  .hb.sel { box-shadow: var(--sh-s), 0 0 0 4px var(--violet); }
+  .hb.sel > summary { background: var(--violet); color: #000; }
+  .hg { border-top: 2px solid var(--line); }
+  .hb > summary + .hg { border-top: 0; }
+  .hg > .hi { border-top: 0; }
+  .hg-t { margin: 0 0 10px 24px; padding: 3px 2px; gap: 7px; border: 0; border-bottom: 3px dashed var(--line); background: transparent; box-shadow: none; font-size: 11px; }
+  .hg-t:hover { background: var(--yellow); color: #000; } .hg-t:active { transform: none; }
+  .hg-t .dd { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid currentColor; transition: transform var(--snap); }
+  .hg-t[aria-expanded="true"] .dd { transform: rotate(180deg); }
+  .hg-d { margin: 0 0 0 20px; border-left: 3px dashed var(--line); border-top: 2px solid var(--line); }
+  .hg-d > .hi:first-child { border-top: 0; }
+  .hi.nm { opacity: .45; }
+  .ch.cDup { background: transparent; border-style: dashed; }
 </style>
 </head>
 <body>
@@ -877,13 +913,29 @@
 <aside class="hist" id="hist" aria-label="Saved history">
   <div class="hist-head">
     <h2>History</h2>
+    <button type="button" class="head-btn" id="histSelect" aria-pressed="false"><span class="label">Select</span></button>
     <button type="button" class="head-btn" id="histImport"><span class="label">Import</span></button>
     <button type="button" class="head-btn" id="histExport"><span class="label">Export</span></button>
     <button type="button" class="head-btn" id="histClose" aria-label="Close history"><span class="label">Close</span></button>
     <input type="search" class="hist-search" id="histQ" placeholder="Search title, ID, label (e.g. D2) or disputed" aria-label="Search history">
+    <div class="hist-filters" id="histF" role="group" aria-label="Filter by label">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="A" aria-pressed="false">A</button>
+      <button type="button" data-f="S" aria-pressed="false">S</button>
+      <button type="button" data-f="D" aria-pressed="false">D</button>
+      <button type="button" data-f="u" aria-pressed="false">Unlabeled</button>
+      <button type="button" data-f="x" aria-pressed="false">Disputed</button>
+    </div>
     <input type="file" id="histFile" accept=".json,application/json">
   </div>
   <div class="hist-msg" id="histMsg" role="status" hidden></div>
+  <div class="hist-bar" id="histBar" hidden>
+    <b id="histSelN" role="status">0 selected</b>
+    <button type="button" id="histSelAll">Select all</button>
+    <button type="button" id="histSelNone">Select none</button>
+    <button type="button" id="histSelExport">Export</button>
+    <button type="button" class="danger" id="histSelDel">Delete</button>
+  </div>
   <div class="hist-list" id="histList"></div>
 </aside>
 <aside class="notes" id="notes" aria-label="Notepad">
@@ -989,7 +1041,7 @@
 
   let seeds = [], busy = false, lastStatus = 'Idle', fieldSeq = 0, curTotal = 0, curMulti = false;
   const pad = n => String(n).padStart(2, '0');
-  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : /(s|x|ch|sh)$/.test(w) ? 'es' : 's');
 
   // ---------- example ----------
   const svg = (t, bg) => 'data:image/svg+xml,' + encodeURIComponent(
@@ -1106,6 +1158,13 @@
   // ---------- extraction ----------
   const IMG_KEY = /(img|image|pic|photo|thumb)/i;
   const IMG_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|svg)(\?|#|$)/i;
+  // Platform-hosted image links are rewritten to the public CDN: keep the path up to the file extension, drop the signed query string
+  const IMG_HOST = /^https:\/\/outsourcing\.logisticsmngmt\.com(\/[^?#]*)/i;
+  const IMG_PATH = /^.*?\.(?:jpe?g|png|gif|webp|avif|bmp|svg)(?![a-z0-9])/i;
+  function fixImg(u) {
+    const m = typeof u === 'string' && u.match(IMG_HOST), p = m && m[1].match(IMG_PATH);
+    return p ? 'https://img.kwcdn.com' + p[0] : u;
+  }
   function normUrl(s) {
     s = s.trim();
     if (s.startsWith('//')) return 'https:' + s;
@@ -1118,7 +1177,7 @@
       if (depth > 7 || out.size >= 24 || node == null) return;
       if (typeof node === 'string') {
         const u = normUrl(node);
-        if (u && (hit || u.startsWith('data:') || IMG_EXT.test(u))) out.add(u);
+        if (u && (hit || u.startsWith('data:') || IMG_EXT.test(u))) out.add(fixImg(u));
       } else if (Array.isArray(node)) {
         node.forEach(n => walk(n, hit, depth + 1));
       } else if (typeof node === 'object') {
@@ -1129,6 +1188,7 @@
     return [...out];
   }
 
+  const NO_TITLE = '(No product title found)';
   function extract(data) {
     const items = data?.result?.dataList;
     if (!Array.isArray(items)) throw new Error('Could not find result.dataList in this JSON. Make sure you pasted the outer-list response.');
@@ -1142,7 +1202,7 @@
         batchId: item?.batchId ?? dto?.batchId ?? null,
         jobType: item?.jobType ?? dto?.jobType ?? null,      // not in the usual response; used if a future one has them
         jobCType: item?.jobCType ?? dto?.jobCType ?? null,
-        productTitle: dto?.goodsInfo?.goodsTitle ?? '(No product title found)',
+        productTitle: dto?.goodsInfo?.goodsTitle ?? NO_TITLE,
         images
       };
     });
@@ -1153,7 +1213,7 @@
   function markDups(list) {
     let lead = null, u = 0;
     list.forEach(s => {
-      const k = s.productTitle === '(No product title found)' ? null : String(s.productTitle).trim().replace(/\s+/g, ' ');
+      const k = s.productTitle === NO_TITLE ? null : String(s.productTitle).trim().replace(/\s+/g, ' ');
       if (lead && k !== null && lead.k === k) { s.isDup = true; lead.dupN++; }
       else { s.isDup = false; s.k = k; s.dupN = 0; lead = s; u++; }
     });
@@ -1219,7 +1279,7 @@
         <div class="seed-body">
           ${thumbHtml(seed, i)}
           <div class="seed-main">
-            <div class="seed-tag">${seed.isDup ? 'Duplicate of ' + pad(n) : 'Seed item'}${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}<span class="lab-badges">${badgeHtml(seed)}</span></div>
+            <div class="seed-tag">${seed.isDup ? 'Duplicate of ' + pad(n) : 'Seed item'}${multi ? ' \u00b7 Input ' + pad(seed.src) : ''}<span class="lab-badges">${seedBadges(seed)}</span></div>
             <div class="title">${escapeHtml(seed.productTitle)}</div>
             <div class="id"><b>ID</b><span>${escapeHtml(String(seed.dataId))}</span></div>
             <div class="seed-actions">
@@ -1393,13 +1453,14 @@
       return;
     }
     markDups(all);   // group across inputs too, so repeats split by pagination still merge
+    const pre = prelabel(all);
     render(total, all, active.length > 1);
     const uniq = all.filter(x => !x.isDup).length, dupN = all.length - uniq;
     const dupTxt = dupN ? ` ${plural(dupN, 'repeated duplicate')} hidden.` : '';
     const where = active.length > 1 ? ` across ${plural(ok, 'input')}` : '';
     const skip = skipped ? ` ${plural(skipped, 'empty box').replace('boxs', 'boxes')} ignored.` : '';
-    const lk = '';
-    if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(uniq, 'seed')} kept.${dupTxt} Failed: ${names}. See the error under each box.${skip}`, 'error');
+    const lk = pre ? ` ${plural(pre, 'title')} pre-labeled from History.` : '';
+    if (failed.length) showNotice(`Scanned ${ok} of ${active.length} inputs \u2014 ${plural(uniq, 'seed')} kept.${dupTxt} Failed: ${names}. See the error under each box.${skip}${lk}`, 'error');
     else showNotice(`Scan complete \u2014 ${plural(uniq, 'seed')} found${where}.${dupTxt}${skip}${lk}`, 'success');
   }
   scanBtn.addEventListener('click', runBatch);
@@ -1440,6 +1501,7 @@
     ['D6', 'Material not same'], ['D7', 'Quantity not same'], ['D8', 'Set content not same'], ['D9', 'Inconsistent function'], ['D0', 'Others']];
   const LN = {}; [...OPTS, ...SUBS].forEach(([c, n]) => LN[c] = n);
   const badgeHtml = s => (s.lab ? `<span class="lab-badge">${s.lab}</span>` : '') + (s.disp ? '<span class="lab-badge b-X">DISPUTED</span>' : '');
+  const seedBadges = s => badgeHtml(s) + (s.fh ? '<span class="lab-badge b-H">FROM HISTORY</span>' : '');
   const labDlg = $('labDlg'), labMain = $('labMain'), labSub = $('labSub'), labDisp = $('labDisp');
   let labObj = null, labCb = null, labTimer = 0, labClosing = false;
   const optBtn = (c, n, key, cls, on) => `<button type="button" class="ld-opt ${cls}${on ? ' on' : ''}" data-set="${c}" aria-pressed="${on}"><kbd>${key}</kbd><span>${n}</span></button>`;
@@ -1452,8 +1514,9 @@
   }
   function applyCard(i) {
     const s = seeds[i], art = seedList.querySelector(`[data-label="${i}"]`).closest('.seed');
+    if (s.fh && (s.lab !== s.fh.l || !!s.disp !== !!s.fh.d)) s.fh = null;   // changed by hand: no longer "from history"
     art.className = art.className.replace(/\blab-\S+/g, '').trim() + (s.lab ? ' lab-' + s.lab[0] : '');
-    art.querySelector('.lab-badges').innerHTML = badgeHtml(s);
+    art.querySelector('.lab-badges').innerHTML = seedBadges(s);
     persist();
   }
   // Opens the label modal for any item object ({lab, disp}); cb runs after every change
@@ -1503,14 +1566,14 @@
     try {
       localStorage.setItem(SK, JSON.stringify({ total: curTotal, multi: curMulti, seeds: seeds.map(s => ({
         dataId: s.dataId, jobId: s.jobId, batchId: s.batchId, jobType: s.jobType, jobCType: s.jobCType, productTitle: s.productTitle,
-        images: (s.images || []).filter(u => !/^data:/.test(u)), src: s.src, isDup: !!s.isDup, k: s.k, dupN: s.dupN || 0, lab: s.lab || '', disp: !!s.disp })) }));
+        images: (s.images || []).filter(u => !/^data:/.test(u)), src: s.src, isDup: !!s.isDup, k: s.k, dupN: s.dupN || 0, lab: s.lab || '', disp: !!s.disp, fh: s.fh || null })) }));
     } catch (e) {}
   }
   queueMicrotask(() => {
     try {
       const d = JSON.parse(localStorage.getItem(SK));
       if (!d || !Array.isArray(d.seeds) || !d.seeds.length) return;
-      const list = d.seeds.map(s => ({ ...s, images: Array.isArray(s.images) ? s.images : [], bad: new Set() }));
+      const list = d.seeds.map(s => ({ ...s, images: [...new Set((Array.isArray(s.images) ? s.images : []).map(fixImg))], bad: new Set() }));
       render(+d.total || list.length, list, !!d.multi);
       showNotice(`Restored your last scan \u2014 ${plural(list.filter(s => !s.isDup).length, 'item')}.`, 'success');
     } catch (e) {}
@@ -1524,32 +1587,117 @@
   const setH = (m, err) => { histMsg.textContent = m; histMsg.hidden = !m; histMsg.classList.toggle('err', !!err); };
   const saveH = () => { try { localStorage.setItem(HK, JSON.stringify(hist)); return true; } catch (e) { setH('Could not save \u2014 browser storage is full or blocked. Export your history to keep a copy.', true); return false; } };
   const hay = x => [x.title, x.id, x.lab, LN[x.lab] || '', x.disp ? 'disputed' : '', x.dup ? 'duplicate' : ''].join(' ').toLowerCase();
+
+  // ---------- pre-label from history ----------
+  // Matches on product title (ignoring capitalization and extra spaces). Seeds with no title never match.
+  function normTitle(t) {
+    if (typeof t !== 'string') return null;
+    const k = t.trim().replace(/\s+/g, ' ').toLowerCase();
+    return !k || k === NO_TITLE.toLowerCase() ? null : k;
+  }
+  // title -> {lab, disp} from the most recent batch that has a labeled copy (a newer unlabeled copy doesn't override)
+  function histLabels() {
+    const m = new Map();
+    [...hist].sort((x, y) => (y.id || 0) - (x.id || 0)).forEach(b => b.items.forEach(x => {
+      const k = x.lab && VALID.has(x.lab) ? normTitle(x.title) : null;
+      if (k && !m.has(k)) m.set(k, { lab: x.lab, disp: !!x.disp });
+    }));
+    return m;
+  }
+  function prelabel(list) {
+    const idx = histLabels(), hit = new Set();
+    if (!idx.size) return 0;
+    list.forEach(s => {
+      const k = normTitle(s.productTitle), m = k && idx.get(k);
+      if (!m) return;
+      s.lab = m.lab; s.disp = m.disp; s.fh = { l: m.lab, d: m.disp };
+      hit.add(k);
+    });
+    return hit.size;
+  }
+
+  // ---------- history list: filters, duplicate groups, multi-select ----------
+  const FILT = { all: () => true, A: x => (x.lab || '')[0] === 'A', S: x => (x.lab || '')[0] === 'S', D: x => (x.lab || '')[0] === 'D', u: x => !x.lab, x: x => !!x.disp };
+  let hf = 'all', selMode = false;
+  const sel = new Set(), openB = new Set(), openG = new Set();   // selected batches, batches / duplicate groups the user opened
+  const histBar = $('histBar'), histSelBtn = $('histSelect');
+
+  // a repeated item sits under the first item it repeats
+  function groupItems(items) {
+    const g = [];
+    items.forEach((x, xi) => { if (x.dup && g.length) g[g.length - 1].d.push([x, xi]); else g.push({ l: [x, xi], d: [] }); });
+    return g;
+  }
   const chips = b => {
-    const c = {}; let dn = 0;
-    b.items.forEach(x => { if (x.lab) c[x.lab[0]] = (c[x.lab[0]] || 0) + 1; if (x.disp) dn++; });
-    return `<i class="ch">${plural(b.items.length, 'item')}</i>` + ['A', 'S', 'D'].filter(k => c[k]).map(k => `<i class="ch c${k}">${k} ${c[k]}</i>`).join('') + (dn ? `<i class="ch cX">${dn} disputed</i>` : '');
+    const c = {}; let dn = 0, dup = 0;
+    const groups = groupItems(b.items);
+    groups.forEach(g => {
+      dup += g.d.length;
+      const x = g.l[0];
+      if (x.lab) c[x.lab[0]] = (c[x.lab[0]] || 0) + 1;
+      if (x.disp) dn++;
+    });
+    return `<i class="ch">${plural(groups.length, 'item')}</i>` + (dup ? `<i class="ch cDup">+${dup} dup</i>` : '')
+      + ['A', 'S', 'D'].filter(k => c[k]).map(k => `<i class="ch c${k}">${k} ${c[k]}</i>`).join('') + (dn ? `<i class="ch cX">${dn} disputed</i>` : '');
   };
   const histLab = x => x.lab || x.disp ? badgeHtml(x) + (x.lab ? `<span>${LN[x.lab]}</span>` : '') : '<span class="hi-none">Unlabeled</span>';
+
+  function syncSel() {
+    histEl.classList.toggle('selecting', selMode);
+    histBar.hidden = !selMode;
+    histSelBtn.setAttribute('aria-pressed', String(selMode));
+    histSelBtn.querySelector('.label').textContent = selMode ? 'Done' : 'Select';
+    $('histSelN').textContent = sel.size + ' selected';
+    $('histSelExport').disabled = $('histSelDel').disabled = !sel.size;
+  }
+  function paintSel() {
+    histList.querySelectorAll('input[data-sel]').forEach(i => { const on = sel.has(+i.dataset.sel); i.checked = on; i.closest('.hb').classList.toggle('sel', on); });
+    syncSel();
+  }
+
   function renderHist() {
-    const q = histQ.value.trim().toLowerCase();
+    const q = histQ.value.trim().toLowerCase(), f = FILT[hf] || FILT.all, act = !!q || hf !== 'all';
+    const ok = x => (!q || hay(x).includes(q)) && f(x);
+    const row = ([x, xi], bi, dim) => `<div class="hi${x.lab ? ' l-' + x.lab[0] : ''}${dim ? ' nm' : ''}"><div class="hi-t">${escapeHtml(x.title)}</div><div class="hi-id">ID ${escapeHtml(x.id)}${x.dup ? ' \u00b7 duplicate' : ''}</div>
+          <div class="hi-l"><span class="hi-lab">${histLab(x)}</span><button type="button" class="hi-edit" data-b="${bi}" data-x="${xi}" data-edit aria-label="Edit label" title="Edit label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></button></div></div>`;
     const html = hist.map((b, bi) => {
-      const rows = b.items.map((x, xi) => [x, xi]).filter(([x]) => !q || hay(x).includes(q));
-      if (!rows.length) return '';
-      return `<details class="hb"${q ? ' open' : ''}><summary><span class="hb-n">${pad(hist.length - bi)}</span><span class="hb-m"><b>${escapeHtml(new Date(b.t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))}</b><span class="hb-c">${chips(b)}</span></span></summary>
-        ${rows.map(([x, xi]) => `<div class="hi${x.lab ? ' l-' + x.lab[0] : ''}"><div class="hi-t">${escapeHtml(x.title)}</div><div class="hi-id">ID ${escapeHtml(x.id)}${x.dup ? ' \u00b7 duplicate' : ''}</div>
-          <div class="hi-l"><span class="hi-lab">${histLab(x)}</span><button type="button" class="hi-edit" data-b="${bi}" data-x="${xi}" data-edit aria-label="Edit label" title="Edit label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></button></div></div>`).join('')}
+      // a group shows if its first item or any of its duplicates matches; it opens by itself when a duplicate is what matched
+      const groups = groupItems(b.items).map(g => ({ g, m: ok(g.l[0]), dm: g.d.some(([x]) => ok(x)) })).filter(o => o.m || o.dm);
+      if (!groups.length) return '';
+      const on = sel.has(b.id);
+      const body = groups.map(({ g, m, dm }) => {
+        const gk = b.id + ':' + g.l[1], open = g.d.length > 0 && (openG.has(gk) || (act && dm));
+        return `<div class="hg">${row(g.l, bi, act && !m)}${g.d.length ? `<button type="button" class="hg-t" data-grp="${gk}" aria-expanded="${open}"><span class="label">${plural(g.d.length, 'duplicate')}</span><span class="dd" aria-hidden="true"></span></button><div class="hg-d"${open ? '' : ' hidden'}>${g.d.map(p => row(p, bi, act && !ok(p[0]))).join('')}</div>` : ''}</div>`;
+      }).join('');
+      return `<details class="hb${on ? ' sel' : ''}" data-bid="${b.id}"${act || openB.has(b.id) ? ' open' : ''}><summary><label class="hb-sel"><input type="checkbox" data-sel="${b.id}"${on ? ' checked' : ''} aria-label="Select batch ${pad(hist.length - bi)}"></label><span class="hb-n">${pad(hist.length - bi)}</span><span class="hb-m"><b>${escapeHtml(new Date(b.t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))}</b><span class="hb-c">${chips(b)}</span></span></summary>
+        ${body}
         <button type="button" class="hb-del" data-del="${bi}">Delete batch</button></details>`;
     }).join('');
-    histList.innerHTML = html || `<div class="hist-empty">${hist.length ? 'No items match your search.' : 'Nothing saved yet. Label some items, then press Save.'}</div>`;
+    histList.innerHTML = html || `<div class="hist-empty">${hist.length ? 'No items match your search or filter.' : 'Nothing saved yet. Label some items, then press Save.'}</div>`;
   }
   histList.addEventListener('click', e => {
+    const sm = e.target.closest('summary');
+    if (sm && !e.target.closest('.hb-sel')) {   // remember which batches the user opened, so a re-render keeps them open
+      const box = sm.parentElement;
+      setTimeout(() => { if (box.open) openB.add(+box.dataset.bid); else openB.delete(+box.dataset.bid); });
+      return;
+    }
+    const gt = e.target.closest('[data-grp]');
+    if (gt) {
+      const open = gt.getAttribute('aria-expanded') !== 'true';
+      gt.setAttribute('aria-expanded', String(open));
+      gt.nextElementSibling.hidden = !open;
+      if (open) openG.add(gt.dataset.grp); else openG.delete(gt.dataset.grp);
+      return;
+    }
     const ed = e.target.closest('[data-edit]');
     if (ed) {
       const b = hist[ed.dataset.b], x = b && b.items[ed.dataset.x];
       if (!x) return;
       const row = ed.closest('.hi'), box = ed.closest('.hb');
       openLab(x, pad(+ed.dataset.x + 1), x.title, () => {
-        row.className = 'hi' + (x.lab ? ' l-' + x.lab[0] : '');
+        row.classList.remove('l-A', 'l-S', 'l-D');
+        if (x.lab) row.classList.add('l-' + x.lab[0]);
         row.querySelector('.hi-lab').innerHTML = histLab(x);
         box.querySelector('.hb-c').innerHTML = chips(b);
         saveH();
@@ -1558,7 +1706,39 @@
     }
     const d = e.target.closest('[data-del]');
     if (!d || !confirm('Delete this saved batch? This can\u2019t be undone.')) return;
-    hist.splice(+d.dataset.del, 1); saveH(); renderHist();
+    const [gone] = hist.splice(+d.dataset.del, 1);
+    if (gone) { sel.delete(gone.id); openB.delete(gone.id); }
+    saveH(); renderHist(); syncSel();
+  });
+  histList.addEventListener('change', e => {
+    const i = e.target.closest('input[data-sel]');
+    if (!i) return;
+    const id = +i.dataset.sel;
+    if (i.checked) sel.add(id); else sel.delete(id);
+    i.closest('.hb').classList.toggle('sel', i.checked);
+    syncSel();
+  });
+  $('histF').addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]');
+    if (!b) return;
+    hf = b.dataset.f;
+    $('histF').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderHist();
+  });
+  histSelBtn.addEventListener('click', () => { selMode = !selMode; if (!selMode) sel.clear(); paintSel(); });
+  $('histSelAll').addEventListener('click', () => { histList.querySelectorAll('input[data-sel]').forEach(i => sel.add(+i.dataset.sel)); paintSel(); });   // every batch currently listed
+  $('histSelNone').addEventListener('click', () => { sel.clear(); paintSel(); });
+  $('histSelExport').addEventListener('click', () => {
+    const picked = hist.filter(b => sel.has(b.id));
+    if (!picked.length) return;
+    downloadHist(picked, 'selected-');
+  });
+  $('histSelDel').addEventListener('click', () => {
+    const n = hist.filter(b => sel.has(b.id)).length;
+    if (!n || !confirm(`Delete ${plural(n, 'selected batch')}? This can\u2019t be undone.`)) return;
+    hist = hist.filter(b => !sel.has(b.id));
+    sel.clear(); saveH(); renderHist(); syncSel();
+    setH(`Deleted ${plural(n, 'batch')}.`);
   });
   histQ.addEventListener('input', renderHist);
   saveHistBtn.addEventListener('click', () => {
@@ -1577,13 +1757,16 @@
   $('histBtn').addEventListener('click', () => { if (histEl.classList.contains('open')) { closeHist(); return; } renderHist(); setH(''); histEl.classList.add('open'); histQ.focus(); });
   $('histClose').addEventListener('click', closeHist);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && histEl.classList.contains('open') && !labDlg.open) closeHist(); });
+  function downloadHist(batches, tag) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'item-check', v: 1, batches }, null, 2)], { type: 'application/json' }));
+    a.download = 'item-check-history-' + (tag || '') + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setH(`Exported ${plural(batches.length, 'batch')}.`);
+  }
   $('histExport').addEventListener('click', () => {
     if (!hist.length) { setH('Nothing to export yet.', true); return; }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'item-check', v: 1, batches: hist }, null, 2)], { type: 'application/json' }));
-    a.download = 'item-check-history-' + new Date().toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    setH(`Exported ${plural(hist.length, 'batch')}.`);
+    downloadHist(hist);
   });
   $('histImport').addEventListener('click', () => histFile.click());
   histFile.addEventListener('change', async () => {
@@ -1727,6 +1910,7 @@
     }
   });
 
+  syncSel();
   addField();
   setEmpty('idle');
 })();
